@@ -3,6 +3,13 @@ import Document from "../models/Document.model.js";
 import streamifier from "streamifier";
 
 export const uploadDocument = async (req, res) => {
+  console.log(req.body)
+  console.log(req.file)
+console.log("Uploader exists:", typeof cloudinary.uploader);
+  console.log("Cloudinary key:", process.env.CLOUDINARY_CLOUD_NAME);
+  console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
+  
+  console.log("Before config:", cloudinary.config());
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -27,6 +34,7 @@ export const uploadDocument = async (req, res) => {
         });
 
         console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
+
         res.status(201).json({
           message: "Document uploaded successfully",
           document,
@@ -34,6 +42,7 @@ export const uploadDocument = async (req, res) => {
       }
     );
 console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
+
     streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
   } catch (error) {
     res.status(500).json({ message: error.message });
