@@ -1,79 +1,80 @@
 import Certification from "../models/Certification.model.js";
-import CertificationCompletion from "../models/CertificationCompletion.model.js";
 
 
-// Add certification
-export const createCertification = async (req, res) => {
+// create certification (admin/faculty)
+export const createCertification = async(req,res)=>{
+ try{
+
   const certification = await Certification.create({
-    ...req.body,
-    createdBy: req.user._id,
+   title:req.body.title,
+   provider:req.body.provider,
+   platform:req.body.platform,
+   description:req.body.description,
+   officialLink:req.body.officialLink,
+   deadline:req.body.deadline,
+   createdBy:req.user._id
   });
 
   res.status(201).json({
-    message: "Certification added successfully",
-    certification,
+   message:"Certification added",
+   certification
   });
+
+ }catch(err){
+  res.status(500).json({message:err.message});
+ }
 };
 
-// Get all certifications (student view)
-export const getActiveCertifications = async (req, res) => {
-  const certifications = await Certification.find({ isActive: true });
+// get certifications for students
+export const getCertifications = async(req,res)=>{
+ try{
+
+  const certifications = await Certification.find({
+   isActive:true
+  }).sort({createdAt:-1});
+
   res.json(certifications);
+
+ }catch(err){
+  res.status(500).json({message:err.message});
+ }
 };
 
-/* ================= STUDENT ================= */
 
-// Enroll in certification
-export const enrollCertification = async (req, res) => {
-  const { certificationId } = req.body;
 
-  const alreadyEnrolled = await CertificationCompletion.findOne({
-    student: req.user._id,
-    certification: certificationId,
-  });
+// update certification
+export const updateCertification = async(req,res)=>{
+ try{
 
-  if (alreadyEnrolled) {
-    return res.status(400).json({
-      message: "Already enrolled",
-    });
-  }
-
-  const enrollment = await CertificationCompletion.create({
-    student: req.user._id,
-    certification: certificationId,
-  });
-
-  res.status(201).json({
-    message: "Enrolled successfully",
-    enrollment,
-  });
-};
-
-// Mark certification as completed
-export const completeCertification = async (req, res) => {
-  const completion = await CertificationCompletion.findOneAndUpdate(
-    {
-      student: req.user._id,
-      certification: req.params.id,
-    },
-    {
-      status: "completed",
-      completedAt: new Date(),
-    },
-    { new: true }
+  const certification = await Certification.findByIdAndUpdate(
+   req.params.id,
+   req.body,
+   {new:true}
   );
 
   res.json({
-    message: "Certification marked as completed",
-    completion,
+   message:"Certification updated",
+   certification
   });
+
+ }catch(err){
+  res.status(500).json({message:err.message});
+ }
 };
 
-// Student certification history
-export const myCertifications = async (req, res) => {
-  const certifications = await CertificationCompletion.find({
-    student: req.user._id,
-  }).populate("certification");
 
-  res.json(certifications);
+
+// delete certification
+export const deleteCertification = async(req,res)=>{
+ try{
+
+  await Certification.findByIdAndDelete(req.params.id);
+
+  res.json({
+   message:"Certification deleted"
+  });
+
+ }catch(err){
+  res.status(500).json({message:err.message});
+ }
 };

@@ -33,7 +33,7 @@ console.log("Uploader exists:", typeof cloudinary.uploader);
           cloudinaryPublicId: result.public_id,
         });
 
-        console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
+    //  console.log("Cloudinary key:", process.env.CLOUDINARY_API_KEY);
 
         res.status(201).json({
           message: "Document uploaded successfully",

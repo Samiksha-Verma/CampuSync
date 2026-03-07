@@ -12,6 +12,11 @@ const certificationSchema = new mongoose.Schema(
       required: true,
     },
 
+     platform: {
+     type: String,
+     required: true
+    },
+
     description: {
       type: String,
     },
@@ -19,6 +24,7 @@ const certificationSchema = new mongoose.Schema(
     officialLink: {
       type: String,
       required: true,
+      match: /^https?:\/\/.+/
     },
 
     deadline: {

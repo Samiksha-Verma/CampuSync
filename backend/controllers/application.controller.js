@@ -8,31 +8,43 @@ export const apply = async (req, res) => {
 
     let target;
 
-    // 🔍 STEP 1: check event / opportunity exists & active
     if (appliedToType === "event") {
       target = await Event.findOne({
         _id: appliedToId,
         isActive: true,
       });
-    } else if (appliedToType === "opportunity") {
+    }
+
+    else if (appliedToType === "opportunity") {
+
       target = await Opportunity.findOne({
         _id: appliedToId,
         isActive: true,
+        isApproved: true
       });
-    } else {
+
+      if (!target) {
+        return res.status(400).json({
+          message: "Opportunity not available",
+        });
+      }
+
+      // ❗ external opportunity → platform apply not allowed
+      if (target.type === "external") {
+        return res.status(400).json({
+          message:
+            "This is an external opportunity. Please apply via the official link.",
+        });
+      }
+    }
+
+    else {
       return res.status(400).json({
         message: "Invalid application type",
       });
     }
 
-    if (!target) {
-      return res.status(400).json({
-        message: "This application is no longer available",
-      });
-    }
-
-
-    //  STEP 2: prevent duplicate application
+    // prevent duplicate
     const alreadyApplied = await Application.findOne({
       student: req.user._id,
       appliedToType,
@@ -45,7 +57,6 @@ export const apply = async (req, res) => {
       });
     }
 
-    // ✅ STEP 3: create application
     const application = await Application.create({
       student: req.user._id,
       appliedToType,
@@ -56,6 +67,7 @@ export const apply = async (req, res) => {
       message: "Application submitted successfully",
       application,
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -72,44 +84,40 @@ export const getMyApplications = async (req, res) => {
 
 // Faculty/Admin updates status
 export const updateStatus = async (req, res) => {
-  const { status } = req.body;
-
-  const application = await Application.findByIdAndUpdate(
-    req.params.id,
-    { status },
-    { new: true }
-  );
-
-  res.json({
-    message: "Application status updated",
-    application,
-  });
-};
-
-export const getFacultyApplications = async (req, res) => {
   try {
-    // 1️⃣ get all events & opportunities created by this faculty
-    const events = await Event.find({ createdBy: req.user._id }).select("_id");
-    const opportunities = await Opportunity.find({ createdBy: req.user._id }).select("_id");
 
-    const eventIds = events.map((e) => e._id);
-    const opportunityIds = opportunities.map((o) => o._id);
+    const { status } = req.body;
 
-    // 2️⃣ find applications for those IDs
-    const applications = await Application.find({
-      $or: [
-        { appliedToType: "event", appliedToId: { $in: eventIds } },
-        { appliedToType: "opportunity", appliedToId: { $in: opportunityIds } },
-      ],
-    })
-      .populate("student", "name collegeId email")
+    const application = await Application.findById(req.params.id)
       .populate("appliedToId");
 
-    res.json(applications);
+    if (!application) {
+      return res.status(404).json({
+        message: "Application not found",
+      });
+    }
+
+    // recruiter only
+    if (req.user.role !== "recruiter") {
+      return res.status(403).json({
+        message: "Only recruiter can update application status",
+      });
+    }
+
+    application.status = status;
+
+    await application.save();
+
+    res.json({
+      message: "Application status updated",
+      application,
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 export const getAllApplications = async (req, res) => {
   try {

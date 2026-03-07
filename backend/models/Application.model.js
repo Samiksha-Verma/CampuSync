@@ -1,37 +1,25 @@
 import mongoose from "mongoose";
 
-const applicationSchema = new mongoose.Schema(
-  {
-    student: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+const applicationSchema = new mongoose.Schema({
 
-    appliedToType: {
-      type: String,
-      enum: ["event", "opportunity"],
-      required: true,
-    },
+ student:{
+  type:mongoose.Schema.Types.ObjectId,
+  ref:"User",
+  required:true
+ },
 
-    appliedToId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      refPath: "appliedToType",
-    },
+ opportunity:{
+  type:mongoose.Schema.Types.ObjectId,
+  ref:"Opportunity",
+  required:true
+ },
 
-    status: {
-      type: String,
-      enum: ["pending", "accepted", "rejected"],
-      default: "pending",
-    },
+ status:{
+  type:String,
+  enum:["pending","shortlisted","rejected","selected"],
+  default:"pending"
+ }
 
-    appliedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  { timestamps: true }
-);
+},{timestamps:true})
 
-export default mongoose.model("Application", applicationSchema);
+export default mongoose.model("Application",applicationSchema)

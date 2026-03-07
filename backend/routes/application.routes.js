@@ -6,7 +6,6 @@ import {
   apply,
   getMyApplications,
   updateStatus,
-  getFacultyApplications,
   getAllApplications,
 } from "../controllers/application.controller.js";
 
@@ -28,21 +27,14 @@ router.get(
   getMyApplications
 );
 
-// Faculty/Admin status update
-router.patch(
-  "/:id/status",
-  auth,
-  role("faculty", "admin"),
-  updateStatus
-);
+// recruiter update status
+router.put(
+  "/status/:id",
+   auth, 
+   role("recruiter"), 
+   updateStatus
+  );
 
-// Faculty – view applications for own posts
-router.get(
-  "/faculty",
-  auth,
-  role("faculty"),
-  getFacultyApplications
-);
 
 // Admin – view all applications
 router.get(

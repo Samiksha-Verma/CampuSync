@@ -40,14 +40,38 @@ const opportunitySchema = new mongoose.Schema(
       required: true,
     },
 
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
+     // 🔹 external OR campus opportunity
+    type: {
+    type: String,
+    enum: ["external", "campus"],
+    required: true
+  },
+
+  // 🔹 admin approval required for campus jobs
+  isApproved: {
+    type: Boolean,
+    default: false
+  },
+
+  // 🔹 recruiter reference (only campus opportunity)
+  recruiter: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Recruiter"
+  },
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+    },
+
+    createdByRole: {
+    type: String,
+    enum: ["admin", "faculty", "recruiter"]
+  },
+
+   isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }

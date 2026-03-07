@@ -3,14 +3,15 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
-import studentRoutes from "./routes/student.routes.js";
 import eventRoutes from "./routes/event.routes.js";
 import opportunityRoutes from "./routes/opportunity.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import certificationRoutes from "./routes/certification.routes.js";
 import documentRoutes from "./routes/document.routes.js";
-
+import recruiterRoutes from "./routes/recruiter.routes.js";
+import studentRoutes from "./routes/student.routes.js";
+import facultyRoutes from "./routes/faculty.routes.js";
 
 const app = express();
 
@@ -26,7 +27,8 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/certifications", certificationRoutes);
 app.use("/api/documents", documentRoutes);
-//optional
+app.use("/api/recruiter", recruiterRoutes);
+app.use("/api/faculty", facultyRoutes);
 
 
 app.get("/", (req, res) => {

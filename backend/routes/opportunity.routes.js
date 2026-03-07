@@ -1,14 +1,40 @@
 import express from "express";
 import auth from "../middlewares/auth.middleware.js";
 import role from "../middlewares/role.middleware.js";
+
 import {
-  createOpportunity,
-  getStudentOpportunities,
+ createExternalOpportunity,
+ recruiterPostOpportunity,
+ getStudentOpportunities
 } from "../controllers/opportunity.controller.js";
 
 const router = express.Router();
 
-router.post("/", auth, role("faculty", "admin"), createOpportunity);
-router.get("/", auth, role("student"), getStudentOpportunities);
+
+// faculty/admin external
+router.post(
+ "/external",
+ auth,
+ role("admin","faculty"),
+ createExternalOpportunity
+)
+
+
+// recruiter campus
+router.post(
+ "/recruiter-post",
+ auth,
+ role("recruiter"),
+ recruiterPostOpportunity
+)
+
+
+// student view
+router.get(
+ "/student",
+ auth,
+ role("student"),
+ getStudentOpportunities
+)
 
 export default router;
