@@ -5,6 +5,7 @@ import Opportunity from "../models/Opportunity.model.js";
 import Event from "../models/Events.model.js";
 import Application from "../models/Application.model.js";
 import Certification from "../models/Certification.model.js";
+import { sendNotification } from "../services/notification.service.js";
 
 
 // 1️⃣ Dashboard Analytics
@@ -140,23 +141,43 @@ export const getPendingOpportunities = async (req, res) => {
 
 
 // 7️⃣ Approve Opportunity
-export const approveOpportunity = async (req, res) => {
-  try {
+export const approveOpportunity = async (req,res)=>{
+ try{
 
-    const opportunity = await Opportunity.findByIdAndUpdate(
-      req.params.id,
-      { isApproved: true },
-      { new: true }
-    );
+  const opportunity = await Opportunity.findByIdAndUpdate(
+   req.params.id,
+   {isApproved:true},
+   {new:true}
+  );
 
-    res.json({
-      message: "Opportunity approved",
-      opportunity
-    });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if(!opportunity){
+   return res.status(404).json({
+    message:"Opportunity not found"
+   });
   }
+
+  // 🔔 fetch all students
+  const students = await User.find({role:"student"});
+
+  // 🔔 broadcast notification
+  for(const student of students){
+
+   await sendNotification({
+    userId:student._id,
+    title:"New Opportunity Available",
+    message:`${opportunity.company} posted ${opportunity.role}`,
+    type:"opportunity"
+   });
+
+  }
+
+  res.json({
+   message:"Opportunity approved successfully"
+  });
+
+ }catch(err){
+  res.status(500).json({message:err.message});
+ }
 };
 
 

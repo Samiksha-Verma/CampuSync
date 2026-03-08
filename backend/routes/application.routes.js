@@ -1,6 +1,7 @@
 import express from "express";
 import auth from "../middlewares/auth.middleware.js";
 import role from "../middlewares/role.middleware.js";
+import upload from "../middlewares/upload.middleware.js";
 
 import {
   apply,
@@ -16,6 +17,7 @@ router.post(
   "/apply",
   auth,
   role("student"),
+  upload.single("resume"),
   apply
 );
 

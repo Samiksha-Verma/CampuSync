@@ -14,11 +14,18 @@ const applicationSchema = new mongoose.Schema({
   required:true
  },
 
- status:{
+ // resume uploaded by student
+ resumeUrl:{
   type:String,
-  enum:["pending","shortlisted","rejected","selected"],
-  default:"pending"
- }
+  required:true
+ },
+ 
+ status:{
+   type:String,
+   enum:["pending","shortlisted","rejected","selected"],
+   default:"pending"
+  }
+  
 
 },{timestamps:true})
 
