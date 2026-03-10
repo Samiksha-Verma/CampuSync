@@ -3,6 +3,7 @@ import Event from "../models/Events.model.js";
 import Opportunity from "../models/Opportunity.model.js";
 import { sendNotification } from "../services/notification.service.js";
 import cloudinary from "../config/cloudinary.js";
+import { addPoints } from "../services/gamification.service.js";
 
 export const apply = async (req, res) => {
   try {
@@ -91,6 +92,8 @@ export const apply = async (req, res) => {
       resumeUrl:uploadResult.secure_url
 
     });
+    // gamification points
+     await addPoints(req.user._id,20);
 
     res.status(201).json({
       message: "Application submitted successfully",

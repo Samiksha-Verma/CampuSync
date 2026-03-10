@@ -7,11 +7,19 @@ import {
   getMyOpportunities,
   getOpportunityApplicants,
   updateOpportunity,
-  deleteOpportunity
+  deleteOpportunity,
+  recruiterPostOpportunity
 } from "../controllers/recruiter.controller.js";
 
 const router = express.Router();
 
+
+router.post(
+ "/opportunity",
+ auth,
+ role("recruiter"),
+ recruiterPostOpportunity
+);
 
 // recruiter dashboard
 router.get(

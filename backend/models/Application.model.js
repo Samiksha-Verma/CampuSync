@@ -14,6 +14,10 @@ const applicationSchema = new mongoose.Schema({
   required:true
  },
 
+ event:{
+ type:mongoose.Schema.Types.ObjectId,
+ ref:"Event"
+},
  // resume uploaded by student
  resumeUrl:{
   type:String,

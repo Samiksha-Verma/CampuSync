@@ -2,6 +2,26 @@ import Opportunity from "../models/Opportunity.model.js";
 import Application from "../models/Application.model.js";
 
 
+export const recruiterPostOpportunity = async (req,res)=>{
+
+ const opportunity = await Opportunity.create({
+
+  ...req.body,
+
+  recruiter:req.user.id,
+
+  type:"campus",
+
+  createdByRole:"recruiter"
+
+ })
+
+ res.status(201).json({
+  message:"Opportunity submitted for admin approval"
+ })
+
+}
+
 // 1️⃣ Recruiter Dashboard Stats
 export const getRecruiterDashboard = async (req, res) => {
   try {

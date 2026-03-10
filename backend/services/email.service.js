@@ -1,7 +1,11 @@
 import nodemailer from "nodemailer";
 
 
-const transporter = nodemailer.createTransport({
+
+
+export const sendOTP = async (email, otp) => {
+
+  const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
     secure: false, // TLS
@@ -10,8 +14,6 @@ const transporter = nodemailer.createTransport({
       pass: process.env.EMAIL_PASS,
     },
   });
-
-export const sendOTP = async (email, otp) => {
 
   await transporter.sendMail({
     from: `"CampuSync" <${process.env.EMAIL_USER}>`,
@@ -23,6 +25,15 @@ export const sendOTP = async (email, otp) => {
 
 // GENERIC EMAIL (Notifications, Alerts etc.)
 export const sendEmail = async (to, subject, message) => {
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // TLS
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
   await transporter.sendMail({
     from: `"CampuSync" <${process.env.EMAIL_USER}>`,

@@ -3,11 +3,11 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
 {
   // student ke liye
-  collegeId: {
-    type: String,
-    unique: true,
-    sparse: true, // recruiter ke case me allow karega null
-  },
+  collegeId:{
+ type:String,
+ unique:true,
+ sparse:true //recruiter ke liy
+},
 
   name: {
     type: String,
@@ -56,6 +56,16 @@ const userSchema = new mongoose.Schema(
 
   otpExpiry: Date,
 
+  points:{
+ type:Number,
+ default:0
+},
+
+badges:[
+ {
+  type:String
+ }
+]
 },
 { timestamps: true }
 );

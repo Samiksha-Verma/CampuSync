@@ -14,6 +14,7 @@ import studentRoutes from "./routes/student.routes.js";
 import facultyRoutes from "./routes/faculty.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import notificationSettingRoutes from "./routes/notificationSetting.routes.js";
+import leaderboardRoutes from "./routes/leaderboard.routes.js";
 
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/api/recruiter", recruiterRoutes);
 app.use("/api/faculty", facultyRoutes);
 app.use("/api/notifications",notificationRoutes)
 app.use("/api/notification-settings",notificationSettingRoutes)
+app.use("/api/leaderboard",leaderboardRoutes);
 
 app.get("/", (req, res) => {
   res.send("CampuSync Backend Running 🚀");
