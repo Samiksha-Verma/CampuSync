@@ -6,7 +6,10 @@ import {
   getStudentDashboard,
   getMyApplications,
   getOpportunitiesFeed,
-  getUpcomingDeadlines
+  getUpcomingDeadlines,
+  getInternships,
+  getJobs,
+  getCampusOpportunities
 } from "../controllers/student.controller.js";
 
 const router = express.Router();
@@ -30,6 +33,16 @@ router.get(
 );
 
 
+router.get("/internships", 
+  auth,
+  role("student"),
+  getInternships);
+router.get("/jobs",
+  auth,
+  role("student"),
+  getJobs);
+router.get("/campus",
+   getCampusOpportunities);
 // opportunities feed
 router.get(
   "/opportunities",

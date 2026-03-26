@@ -188,14 +188,13 @@ export const createExternalOpportunity = async (req, res) => {
 
     const opportunity = await Opportunity.create({
       ...req.body,
-      type: "external",
       isApproved: true,
       createdBy: req.user._id,
       createdByRole: "admin"
     });
 
     res.status(201).json({
-      message: "External opportunity created",
+      message: "opportunity created",
       opportunity
     });
 

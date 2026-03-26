@@ -103,3 +103,45 @@ export const getUpcomingDeadlines = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getInternships = async (req, res) => {
+  try {
+    const data = await Opportunity.find({
+      type: "internship",
+      isApproved: true,
+      isActive: true
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getJobs = async (req, res) => {
+  try {
+    const data = await Opportunity.find({
+      type: "job",
+      isApproved: true,
+      isActive: true
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getCampusOpportunities = async (req, res) => {
+  try {
+    const data = await Opportunity.find({
+      type: "campus",
+      isApproved: true,
+      isActive: true
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

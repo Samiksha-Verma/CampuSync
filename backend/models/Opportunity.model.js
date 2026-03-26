@@ -43,8 +43,17 @@ const opportunitySchema = new mongoose.Schema(
      // 🔹 external OR campus opportunity
     type: {
     type: String,
-    enum: ["external", "campus"],
+    enum: ["internship", "job", "campus"],
+    default:"campus",
     required: true
+  },
+
+  location:{
+   type: String,
+  },
+
+  logo:{
+  type: String,
   },
 
   // 🔹 admin approval required for campus jobs

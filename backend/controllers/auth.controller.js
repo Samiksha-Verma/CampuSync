@@ -168,13 +168,13 @@ export const login = async (req, res) => {
 
     let user;
 
-    // student login
+    // student login / faculty/admin
     if (collegeId) {
       user = await User.findOne({ collegeId });
     }
 
     // recruiter login
-    if (email) {
+    else if (email) {
       user = await User.findOne({ email });
     }
 

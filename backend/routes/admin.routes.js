@@ -70,7 +70,7 @@ router.put(
 );
 
 router.post(
-  "/external-opportunity", 
+  "/opportunity", 
   authMiddleware,
   roleMiddleware("admin"), 
   createExternalOpportunity

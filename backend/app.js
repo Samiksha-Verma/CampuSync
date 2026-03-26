@@ -15,11 +15,16 @@ import facultyRoutes from "./routes/faculty.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import notificationSettingRoutes from "./routes/notificationSetting.routes.js";
 import leaderboardRoutes from "./routes/leaderboard.routes.js";
+import aiRoutes from "./routes/ai.routes.js";
 
 
 const app = express();
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true,
+}));
 app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -36,6 +41,7 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/notifications",notificationRoutes)
 app.use("/api/notification-settings",notificationSettingRoutes)
 app.use("/api/leaderboard",leaderboardRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.get("/", (req, res) => {
   res.send("CampuSync Backend Running 🚀");
