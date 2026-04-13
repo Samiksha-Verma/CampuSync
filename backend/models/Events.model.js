@@ -8,9 +8,12 @@ const eventSchema = new mongoose.Schema(
     contact: { type: String },
     description: { type: String },
     registrationLink: { type: String },
-
     deadline: { type: Date, required: true },
 
+     image: {
+    type: String, // image URL store hoga
+  },
+  
     isActive: {
       type: Boolean,
       default: true, // auto false after deadline
@@ -20,8 +23,10 @@ const eventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+
   },
   { timestamps: true }
+
 );
 
 export default mongoose.model("Event", eventSchema);

@@ -1,16 +1,15 @@
 import cloudinary from "../config/cloudinary.js";
 import streamifier from "streamifier";
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-
 import { analyzeResume } from "../../ai-services/resumeAnalyzer.js";
-import { generateTest, evaluateTest } from "../../ai-services/mockTestGenerator.js";
 import {
-  startInterview,
-  evaluateAndNextQuestion,
-  generateFinalFeedback,
-} from "../../ai-services/mockInterviewer.js";
+  generateTest, evaluateTest,
+  generateCodingTest, evaluateCodingProblem,
+  generateAptitudeTest, evaluateAptitudeTest,
+  generateDSATest, evaluateDSATest,
+  generateSubjectiveTest, evaluateSubjectiveTest,
+} from "../../ai-services/mockTestGenerator.js";
+import { startInterview, evaluateAndNextQuestion, generateFinalFeedback } from "../../ai-services/mockInterviewer.js";
 import { chatWithBot, generateSessionTitle } from "../../ai-services/chatbot.js";
 
 import ResumeAnalysis from "../models/ResumeAnalysis.model.js";
@@ -21,62 +20,16 @@ import ChatHistory from "../models/ChatHistory.model.js";
 // ─────────────────────────────────────────
 // 📄 RESUME ANALYZER
 // ─────────────────────────────────────────
-
-// export const analyzeResumeController = async (req, res) => {
-//   try {
-//     if (!req.file) return res.status(400).json({ message: "Resume file required hai" });
-
-//     const pdfParse = (await import("pdf-parse")).default;
-//     // 1. Cloudinary pe upload karo
-//     const uploadResult = await new Promise((resolve, reject) => {
-//       const uploadStream = cloudinary.uploader.upload_stream(
-//         { folder: "campusync/resumes", resource_type: "raw" },
-//         (error, result) => (error ? reject(error) : resolve(result))
-//       );
-//       streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
-//     });
-
-//     // 2. PDF se text extract karo
-//     const pdfData = await pdfParse(req.file.buffer);
-//     const resumeText = pdfData.text;
-
-//     if (!resumeText || resumeText.trim().length < 50) {
-//       return res.status(400).json({ message: "Resume mein text nahi mila. Clear PDF upload karo." });
-//     }
-
-//     // 3. DB mein processing status save karo
-//     const analysis = await ResumeAnalysis.create({
-//       userId: req.user._id,
-//       resumeUrl: uploadResult.secure_url,
-//       resumePublicId: uploadResult.public_id,
-//       status: "processing",
-//     });
-
-//     // 4. AI se analyze karwao
-//     const aiResult = await analyzeResume(resumeText);
-
-//     // 5. DB update karo with AI results
-//     const updated = await ResumeAnalysis.findByIdAndUpdate(
-//       analysis._id,
-//       { ...aiResult, status: "completed" },
-//       { new: true }
-//     );
-
-//     res.status(200).json({
-//       message: "Resume analysis complete!",
-//       data: updated,
-//     });
-//   } catch (error) {
-//     console.error("Resume Analysis Error:", error);
-//     res.status(500).json({ message: "Analysis mein error aaya", error: error.message });
-//   }
-// };
-
 export const analyzeResumeController = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "Resume file is required " });
-
-    // ✅ PDF text extract karne ka naya tarika:
+    if (!req.file) return res.status(400).json({ message: "Resume file required hai" });
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "campusync/resumes", resource_type: "raw" },
+        (error, result) => (error ? reject(error) : resolve(result))
+      );
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    });
     const extractTextFromPDF = async (buffer) => {
       const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
       const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
@@ -89,45 +42,18 @@ export const analyzeResumeController = async (req, res) => {
       }
       return text;
     };
-
-    // 1. Cloudinary pe upload
-    const uploadResult = await new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "campusync/resumes", resource_type: "raw" },
-        (error, result) => (error ? reject(error) : resolve(result))
-      );
-      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
-    });
-
-    // 2. PDF se text extract
     const resumeText = await extractTextFromPDF(req.file.buffer);
-
-    if (!resumeText || resumeText.trim().length < 50) {
-      return res.status(400).json({ message: " There is no text in resume. please upload clear PDF." });
-    }
-
-    // 3. DB mein save
+    if (!resumeText || resumeText.trim().length < 50)
+      return res.status(400).json({ message: "Resume mein text nahi mila." });
     const analysis = await ResumeAnalysis.create({
-      userId: req.user._id,
-      resumeUrl: uploadResult.secure_url,
-      resumePublicId: uploadResult.public_id,
-      status: "processing",
+      userId: req.user._id, resumeUrl: uploadResult.secure_url,
+      resumePublicId: uploadResult.public_id, status: "processing",
     });
-
-    // 4. AI se analyze
     const aiResult = await analyzeResume(resumeText);
-
-    // 5. DB update
     const updated = await ResumeAnalysis.findByIdAndUpdate(
-  analysis._id,
-  { ...aiResult, status: "completed" },
-  { returnDocument: "after" }  // ← updated
-);
-
-    res.status(200).json({
-      message: "Resume analysis complete!",
-      data: updated,
-    });
+      analysis._id, { ...aiResult, status: "completed" }, { returnDocument: "after" }
+    );
+    res.status(200).json({ message: "Resume analysis complete!", data: updated });
   } catch (error) {
     console.error("Resume Analysis Error:", error);
     res.status(500).json({ message: "Analysis mein error aaya", error: error.message });
@@ -137,8 +63,7 @@ export const analyzeResumeController = async (req, res) => {
 export const getResumeHistory = async (req, res) => {
   try {
     const analyses = await ResumeAnalysis.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .select("-resumePublicId");
+      .sort({ createdAt: -1 }).select("-resumePublicId");
     res.status(200).json({ data: analyses });
   } catch (error) {
     res.status(500).json({ message: "History fetch nahi hui", error: error.message });
@@ -146,40 +71,25 @@ export const getResumeHistory = async (req, res) => {
 };
 
 // ─────────────────────────────────────────
-// 📝 MOCK TEST
+// 📝 MCQ TEST
 // ─────────────────────────────────────────
-
 export const generateTestController = async (req, res) => {
   try {
     const { jobRole, difficulty } = req.body;
-    if (!jobRole) return res.status(400).json({ message: "Job role is required" });
-    
+    if (!jobRole) return res.status(400).json({ message: "Job role required hai" });
     const { questions } = await generateTest(jobRole, difficulty);
- 
     const testResult = await TestResult.create({
-      userId: req.user._id,
-      jobRole,
-      difficulty: difficulty || "medium",
-      totalQuestions: questions.length,
+      userId: req.user._id, testType: "mcq", jobRole,
+      difficulty: difficulty || "medium", totalQuestions: questions.length,
       questions: questions.map((q) => ({ ...q, userAnswer: null, isCorrect: false })),
       status: "generated",
     });
-
-    const questionsForStudent = testResult.questions.map((q) => ({
-      questionText: q.questionText,
-      options: q.options,
-      topic: q.topic,
-    }));
-
     res.status(200).json({
-      message: "Test is ready!",
-      testId: testResult._id,
-      jobRole,
+      message: "Test is ready!", testId: testResult._id, jobRole,
       difficulty: difficulty || "medium",
-      questions: questionsForStudent,
+      questions: testResult.questions.map((q) => ({ questionText: q.questionText, options: q.options, topic: q.topic })),
     });
   } catch (error) {
-    console.error("Test Generate Error:", error);
     res.status(500).json({ message: "Test generate nahi hua", error: error.message });
   }
 };
@@ -187,49 +97,26 @@ export const generateTestController = async (req, res) => {
 export const submitTestController = async (req, res) => {
   try {
     const { testId, answers, timeTaken } = req.body;
-    // answers = [{ questionIndex: 0, answer: "A" }, ...]
-
     const testResult = await TestResult.findOne({ _id: testId, userId: req.user._id });
-    if (!testResult) return res.status(404).json({ message: "Didn't find test" });
-    if (testResult.status === "completed")
-      return res.status(400).json({ message: "This test is already submitted" });
-
-    // Answers check karo
+    if (!testResult) return res.status(404).json({ message: "Test nahi mila" });
     let correct = 0;
     answers.forEach(({ questionIndex, answer }) => {
       const q = testResult.questions[questionIndex];
-      if (q) {
-        q.userAnswer = answer;
-        q.isCorrect = q.correctAnswer === answer;
-        if (q.isCorrect) correct++;
-      }
+      if (q) { q.userAnswer = answer; q.isCorrect = q.correctAnswer === answer; if (q.isCorrect) correct++; }
     });
-
-    const wrong = answers.length - correct;
-    const skipped = testResult.totalQuestions - answers.length;
     const scorePercentage = Math.round((correct / testResult.totalQuestions) * 100);
-
-    // AI se feedback lo
     const aiFeedback = await evaluateTest(testResult.jobRole, testResult.questions);
-
-    // DB update karo
-    testResult.correctAnswers = correct;
-    testResult.wrongAnswers = wrong;
-    testResult.skippedAnswers = skipped;
-    testResult.scorePercentage = scorePercentage;
-    testResult.timeTaken = timeTaken || null;
-    testResult.overallFeedback = aiFeedback.overallFeedback;
-    testResult.strongTopics = aiFeedback.strongTopics;
-    testResult.topicsToImprove = aiFeedback.topicsToImprove;
-    testResult.status = "completed";
-    await testResult.save();
-
-    res.status(200).json({
-      message: "Test submitted!",
-      data: testResult,
+    Object.assign(testResult, {
+      correctAnswers: correct, wrongAnswers: answers.length - correct,
+      skippedAnswers: testResult.totalQuestions - answers.length,
+      scorePercentage, timeTaken: timeTaken || null,
+      overallFeedback: aiFeedback.overallFeedback,
+      strongTopics: aiFeedback.strongTopics, topicsToImprove: aiFeedback.topicsToImprove,
+      status: "completed",
     });
+    await testResult.save();
+    res.status(200).json({ message: "Test submitted successfully!", data: testResult });
   } catch (error) {
-    console.error("Test Submit Error:", error);
     res.status(500).json({ message: "Test submit nahi hua", error: error.message });
   }
 };
@@ -238,137 +125,344 @@ export const getTestHistory = async (req, res) => {
   try {
     const tests = await TestResult.find({ userId: req.user._id, status: "completed" })
       .sort({ createdAt: -1 })
-      .select("jobRole difficulty scorePercentage correctAnswers totalQuestions createdAt overallFeedback");
+      .select("testType jobRole language aptitudeType dsaTopic difficulty scorePercentage overallScore totalScore correctAnswers totalQuestions createdAt overallFeedback");
     res.status(200).json({ data: tests });
   } catch (error) {
-    res.status(500).json({ message: "Can't fetch history", error: error.message });
+    res.status(500).json({ message: "History fetch nahi hui", error: error.message });
   }
 };
 
 // ─────────────────────────────────────────
-// 🎤 VOICE MOCK INTERVIEW
+// 💻 CODING TEST — 2 Problems + Test Cases
 // ─────────────────────────────────────────
-
-export const startInterviewController = async (req, res) => {
+export const generateCodingTestController = async (req, res) => {
   try {
-    const { jobRole, experienceLevel } = req.body;
-    if (!jobRole) return res.status(400).json({ message: "Job role is required " });
+    const { dsaTopic, difficulty } = req.body;
+    if (!dsaTopic) return res.status(400).json({ message: "DSA topic required hai" });
 
-    // AI se pehla question lo
-    const firstQuestion = await startInterview(jobRole, experienceLevel || "fresher");
+    const { problems } = await generateCodingTest(dsaTopic, difficulty);
 
-    // DB mein session create karo
-    const session = await InterviewSession.create({
+    const testResult = await TestResult.create({
       userId: req.user._id,
-      jobRole,
-      experienceLevel: experienceLevel || "fresher",
-      status: "in-progress",
+      testType: "coding",
+      dsaTopic,
+      difficulty: difficulty || "medium",
+      codingProblems: problems, // Array of 2 problems
+      codingSubmissions: [], // Will be filled on submit
+      status: "generated",
     });
 
     res.status(200).json({
-      message: "Interview start! first question:",
-      sessionId: session._id,
-      ...firstQuestion,
+      message: "Coding test ready!",
+      testId: testResult._id,
+      dsaTopic,
+      problems: problems.map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description,
+        inputFormat: p.inputFormat,
+        outputFormat: p.outputFormat,
+        constraints: p.constraints,
+        examples: p.examples,
+        testCases: p.testCases,
+        starterCode: p.starterCode,
+        topic: p.topic,
+        timeLimit: p.timeLimit,
+      })),
     });
   } catch (error) {
+    console.error("Coding Test Error:", error);
+    res.status(500).json({ message: "Coding test generate nahi hua", error: error.message });
+  }
+};
+
+// Submit ONE problem at a time
+export const submitCodingProblemController = async (req, res) => {
+  try {
+    const { testId, problemIndex, userCode, language, timeTaken } = req.body;
+    if (!testId || userCode === undefined || problemIndex === undefined)
+      return res.status(400).json({ message: "testId, problemIndex, aur code required hai" });
+
+    const testResult = await TestResult.findOne({ _id: testId, userId: req.user._id });
+    if (!testResult) return res.status(404).json({ message: "Test nahi mila" });
+
+    const problem = testResult.codingProblems[problemIndex];
+    if (!problem) return res.status(400).json({ message: "Problem nahi mili" });
+
+    // Evaluate this problem
+    const evaluation = await evaluateCodingProblem(problem, userCode, language);
+
+    // Save this submission
+    const submissionIndex = testResult.codingSubmissions.findIndex(s => s.problemIndex === problemIndex);
+    const submission = {
+      problemIndex,
+      language,
+      userCode,
+      overallScore: evaluation.overallScore,
+      correctnessScore: evaluation.correctnessScore,
+      efficiencyScore: evaluation.efficiencyScore,
+      codeQualityScore: evaluation.codeQualityScore,
+      testCaseResults: evaluation.testCaseResults,
+      testCasesPassed: evaluation.testCasesPassed,
+      totalTestCases: evaluation.totalTestCases,
+      isCorrect: evaluation.isCorrect,
+      timeComplexity: evaluation.timeComplexity,
+      spaceComplexity: evaluation.spaceComplexity,
+      feedback: evaluation.feedback,
+      improvements: evaluation.improvements,
+      optimalApproach: evaluation.optimalApproach,
+      timeTaken: timeTaken || null,
+      submittedAt: new Date(),
+    };
+
+    if (submissionIndex >= 0) {
+      testResult.codingSubmissions[submissionIndex] = submission; // Update existing
+    } else {
+      testResult.codingSubmissions.push(submission); // Add new
+    }
+
+    // If both problems submitted, mark as completed
+    if (testResult.codingSubmissions.length >= 2) {
+      const totalScore = Math.round(
+        testResult.codingSubmissions.reduce((sum, s) => sum + (s.overallScore || 0), 0) / testResult.codingSubmissions.length
+      );
+      testResult.overallScore = totalScore;
+      testResult.status = "completed";
+    }
+
+    await testResult.save();
+
+    res.status(200).json({
+      message: "Problem submitted!",
+      evaluation,
+      allSubmitted: testResult.codingSubmissions.length >= 2,
+    });
+  } catch (error) {
+    console.error("Coding Submit Error:", error);
+    res.status(500).json({ message: "Code submit nahi hua", error: error.message });
+  }
+};
+
+// Get full coding test result
+export const getCodingTestResultController = async (req, res) => {
+  try {
+    const { testId } = req.params;
+    const testResult = await TestResult.findOne({ _id: testId, userId: req.user._id });
+    if (!testResult) return res.status(404).json({ message: "Test nahi mila" });
+    res.status(200).json({ data: testResult });
+  } catch (error) {
+    res.status(500).json({ message: "Result fetch nahi hua", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────
+// 🧮 APTITUDE TEST
+// ─────────────────────────────────────────
+export const generateAptitudeTestController = async (req, res) => {
+  try {
+    const { aptitudeType, difficulty } = req.body;
+    const { questions } = await generateAptitudeTest(aptitudeType || "mixed", difficulty);
+    const testResult = await TestResult.create({
+      userId: req.user._id, testType: "aptitude", aptitudeType: aptitudeType || "mixed",
+      difficulty: difficulty || "medium", totalQuestions: questions.length,
+      questions: questions.map((q) => ({ ...q, userAnswer: null, isCorrect: false })),
+      status: "generated",
+    });
+    res.status(200).json({
+      message: "Aptitude test ready!", testId: testResult._id, aptitudeType: aptitudeType || "mixed",
+      questions: testResult.questions.map((q) => ({ questionText: q.questionText, options: q.options, category: q.category, topic: q.topic })),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Aptitude test generate nahi hua", error: error.message });
+  }
+};
+
+export const submitAptitudeTestController = async (req, res) => {
+  try {
+    const { testId, answers, timeTaken } = req.body;
+    const testResult = await TestResult.findOne({ _id: testId, userId: req.user._id });
+    if (!testResult) return res.status(404).json({ message: "Test nahi mila" });
+    let correct = 0;
+    answers.forEach(({ questionIndex, answer }) => {
+      const q = testResult.questions[questionIndex];
+      if (q) { q.userAnswer = answer; q.isCorrect = q.correctAnswer === answer; if (q.isCorrect) correct++; }
+    });
+    const scorePercentage = Math.round((correct / testResult.totalQuestions) * 100);
+    const aiFeedback = await evaluateAptitudeTest(testResult.aptitudeType, testResult.questions);
+    Object.assign(testResult, {
+      correctAnswers: correct, wrongAnswers: answers.length - correct,
+      skippedAnswers: testResult.totalQuestions - answers.length,
+      scorePercentage, overallFeedback: aiFeedback.overallFeedback,
+      categoryBreakdown: aiFeedback.categoryBreakdown,
+      strongTopics: aiFeedback.strongTopics, topicsToImprove: aiFeedback.topicsToImprove,
+      studyTips: aiFeedback.studyTips, timeTaken: timeTaken || null, status: "completed",
+    });
+    await testResult.save();
+    res.status(200).json({ message: "Aptitude test submitted!", data: testResult });
+  } catch (error) {
+    res.status(500).json({ message: "Aptitude test submit nahi hua", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────
+// 🧠 DSA TEST
+// ─────────────────────────────────────────
+export const generateDSATestController = async (req, res) => {
+  try {
+    const { dsaTopic, difficulty } = req.body;
+    if (!dsaTopic) return res.status(400).json({ message: "DSA topic required hai" });
+    const { questions } = await generateDSATest(dsaTopic, difficulty);
+    const testResult = await TestResult.create({
+      userId: req.user._id, testType: "dsa", dsaTopic,
+      difficulty: difficulty || "medium", totalQuestions: questions.length,
+      questions: questions.map((q) => ({ ...q, userAnswer: null, isCorrect: false })),
+      status: "generated",
+    });
+    res.status(200).json({
+      message: "DSA test ready!", testId: testResult._id, dsaTopic,
+      questions: testResult.questions.map((q) => ({ questionText: q.questionText, options: q.options, questionType: q.questionType, topic: q.topic })),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "DSA test generate nahi hua", error: error.message });
+  }
+};
+
+export const submitDSATestController = async (req, res) => {
+  try {
+    const { testId, answers, timeTaken } = req.body;
+    const testResult = await TestResult.findOne({ _id: testId, userId: req.user._id });
+    if (!testResult) return res.status(404).json({ message: "Test nahi mila" });
+    let correct = 0;
+    answers.forEach(({ questionIndex, answer }) => {
+      const q = testResult.questions[questionIndex];
+      if (q) { q.userAnswer = answer; q.isCorrect = q.correctAnswer === answer; if (q.isCorrect) correct++; }
+    });
+    const scorePercentage = Math.round((correct / testResult.totalQuestions) * 100);
+    const aiFeedback = await evaluateDSATest(testResult.dsaTopic, testResult.questions);
+    Object.assign(testResult, {
+      correctAnswers: correct, wrongAnswers: answers.length - correct,
+      skippedAnswers: testResult.totalQuestions - answers.length,
+      scorePercentage, overallFeedback: aiFeedback.overallFeedback,
+      conceptualScore: aiFeedback.conceptualScore, complexityScore: aiFeedback.complexityScore,
+      strongTopics: aiFeedback.strongAreas, topicsToImprove: aiFeedback.weakAreas,
+      nextTopicsToStudy: aiFeedback.nextTopicsToStudy,
+      timeTaken: timeTaken || null, status: "completed",
+    });
+    await testResult.save();
+    res.status(200).json({ message: "DSA test submitted!", data: testResult });
+  } catch (error) {
+    res.status(500).json({ message: "DSA test submit nahi hua", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────
+// 📝 SUBJECTIVE TEST
+// ─────────────────────────────────────────
+export const generateSubjectiveTestController = async (req, res) => {
+  try {
+    const { jobRole, difficulty } = req.body;
+    if (!jobRole) return res.status(400).json({ message: "Job role required hai" });
+    const { questions } = await generateSubjectiveTest(jobRole, difficulty);
+    const testResult = await TestResult.create({
+      userId: req.user._id, testType: "subjective", jobRole,
+      difficulty: difficulty || "medium", totalQuestions: questions.length,
+      maxPossibleScore: questions.reduce((sum, q) => sum + (q.maxScore || 10), 0),
+      questions: questions.map((q) => ({ ...q, userAnswer_text: "" })),
+      status: "generated",
+    });
+    res.status(200).json({
+      message: "Subjective test ready!", testId: testResult._id, jobRole,
+      questions: testResult.questions.map((q) => ({ questionText: q.questionText, topic: q.topic, maxScore: q.maxScore })),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Subjective test generate nahi hua", error: error.message });
+  }
+};
+
+export const submitSubjectiveTestController = async (req, res) => {
+  try {
+    const { testId, answers, timeTaken } = req.body;
+    const testResult = await TestResult.findOne({ _id: testId, userId: req.user._id });
+    if (!testResult) return res.status(404).json({ message: "Test nahi mila" });
+    answers.forEach(({ questionIndex, answer }) => {
+      if (testResult.questions[questionIndex]) testResult.questions[questionIndex].userAnswer_text = answer;
+    });
+    const questionsWithAnswers = testResult.questions.map((q, i) => ({
+      index: i, question: q.questionText, expectedPoints: q.expectedPoints,
+      userAnswer: q.userAnswer_text, maxScore: q.maxScore,
+    }));
+    const evaluation = await evaluateSubjectiveTest(testResult.jobRole, questionsWithAnswers);
+    evaluation.evaluations.forEach((e) => {
+      const q = testResult.questions[e.questionIndex];
+      if (q) { q.achievedScore = e.score; q.feedback_text = e.feedback; q.missedPoints = e.missedPoints; q.goodPoints = e.goodPoints; }
+    });
+    const scorePercentage = Math.round((evaluation.totalScore / evaluation.maxPossibleScore) * 100);
+    Object.assign(testResult, {
+      totalScore: evaluation.totalScore, scorePercentage,
+      overallFeedback: evaluation.overallFeedback, strengths: evaluation.strengths,
+      improvements: evaluation.improvements, timeTaken: timeTaken || null, status: "completed",
+    });
+    await testResult.save();
+    res.status(200).json({ message: "Subjective test submitted!", data: testResult });
+  } catch (error) {
+    res.status(500).json({ message: "Subjective test submit nahi hua", error: error.message });
+  }
+};
+
+// ─────────────────────────────────────────
+// 🎤 VOICE INTERVIEW
+// ─────────────────────────────────────────
+export const startInterviewController = async (req, res) => {
+  try {
+    const { jobRole, experienceLevel } = req.body;
+    if (!jobRole) return res.status(400).json({ message: "Job role required hai" });
+    const firstQuestion = await startInterview(jobRole, experienceLevel || "fresher");
+    const session = await InterviewSession.create({
+      userId: req.user._id, jobRole, experienceLevel: experienceLevel || "fresher", status: "in-progress",
+    });
+    res.status(200).json({ message: "Interview started! First question:", sessionId: session._id, ...firstQuestion });
+  } catch (error) {
     console.error("Interview Start Error:", error);
-    res.status(500).json({ message: "Interview didn't start", error: error.message });
+    res.status(500).json({ message: "Could not start interview", error: error.message });
   }
 };
 
 export const submitAnswerController = async (req, res) => {
   try {
     const { sessionId, questionNumber, question, transcribedAnswer } = req.body;
-
-    const session = await InterviewSession.findOne({
-      _id: sessionId,
-      userId: req.user._id,
-    });
-    if (!session) return res.status(404).json({ message: "Didn't find Interview session" });
-    if (session.status === "completed")
-      return res.status(400).json({ message: "This interview is already completed" });
-
-    // AI se evaluate + next question lo
+    const session = await InterviewSession.findOne({ _id: sessionId, userId: req.user._id });
+    if (!session) return res.status(404).json({ message: "Session nahi mili" });
     const result = await evaluateAndNextQuestion(
-      session.jobRole,
-      session.experienceLevel,
-      questionNumber,
-      question,
-      transcribedAnswer,
-      session.rounds
+      session.jobRole, session.experienceLevel, questionNumber, question, transcribedAnswer, session.rounds
     );
-
-    // Is round ko save karo
-    session.rounds.push({
-      questionNumber,
-      question,
-      transcribedAnswer,
-      answerScore: result.answerScore,
-      feedback: result.feedback,
-      suggestedAnswer: result.suggestedAnswer,
-    });
+    session.rounds.push({ questionNumber, question, transcribedAnswer, answerScore: result.answerScore, feedback: result.feedback, suggestedAnswer: result.suggestedAnswer });
     session.completedQuestions = questionNumber;
     await session.save();
-
     const isLastQuestion = questionNumber >= session.totalQuestions;
-
-    res.status(200).json({
-      message: isLastQuestion ? "Interview complete!" : "Next question ready:",
-      answerScore: result.answerScore,
-      feedback: result.feedback,
-      isComplete: isLastQuestion,
-      nextQuestion: result.nextQuestion,
-      questionNumber: isLastQuestion ? null : questionNumber + 1,
-    });
+    res.status(200).json({ message: isLastQuestion ? "Interview complete!" : "Next question:", answerScore: result.answerScore, feedback: result.feedback, isComplete: isLastQuestion, nextQuestion: result.nextQuestion, questionNumber: isLastQuestion ? null : questionNumber + 1 });
   } catch (error) {
-    console.error("Answer Submit Error:", error);
-    res.status(500).json({ message: "Answer not submitted", error: error.message });
+    res.status(500).json({ message: "Answer submit nahi hua", error: error.message });
   }
 };
 
 export const completeInterviewController = async (req, res) => {
   try {
     const { sessionId } = req.body;
-
-    const session = await InterviewSession.findOne({
-      _id: sessionId,
-      userId: req.user._id,
-    });
-    if (!session) return res.status(404).json({ message: "Cannot find Session" });
-
-    // AI se final feedback lo
-    const finalFeedback = await generateFinalFeedback(
-      session.jobRole,
-      session.experienceLevel,
-      session.rounds
-    );
-
-    // DB update karo
-    Object.assign(session, {
-      ...finalFeedback,
-      status: "completed",
-      completedAt: new Date(),
-    });
+    const session = await InterviewSession.findOne({ _id: sessionId, userId: req.user._id });
+    if (!session) return res.status(404).json({ message: "Session nahi mili" });
+    const finalFeedback = await generateFinalFeedback(session.jobRole, session.experienceLevel, session.rounds);
+    Object.assign(session, { ...finalFeedback, status: "completed", completedAt: new Date() });
     await session.save();
-
-    res.status(200).json({
-      message: "Interview feedback ready!",
-      data: session,
-    });
+    res.status(200).json({ message: "Interview feedback ready!", data: session });
   } catch (error) {
-    console.error("Interview Complete Error:", error);
-    res.status(500).json({ message: "Final feedback not received", error: error.message });
+    res.status(500).json({ message: "Final feedback nahi mili", error: error.message });
   }
 };
 
 export const getInterviewHistory = async (req, res) => {
   try {
-    const interviews = await InterviewSession.find({
-      userId: req.user._id,
-      status: "completed",
-    })
-      .sort({ createdAt: -1 })
-      .select("jobRole experienceLevel overallScore recommendation completedAt overallFeedback");
+    const interviews = await InterviewSession.find({ userId: req.user._id, status: "completed" })
+      .sort({ createdAt: -1 }).select("jobRole experienceLevel overallScore recommendation completedAt overallFeedback");
     res.status(200).json({ data: interviews });
   } catch (error) {
     res.status(500).json({ message: "History fetch nahi hui", error: error.message });
@@ -378,54 +472,33 @@ export const getInterviewHistory = async (req, res) => {
 // ─────────────────────────────────────────
 // 💬 CHATBOT
 // ─────────────────────────────────────────
-
 export const chatController = async (req, res) => {
   try {
     const { message, sessionId } = req.body;
     if (!message) return res.status(400).json({ message: "Message required hai" });
-
     let chatSession;
-
     if (sessionId) {
-      // Existing session
       chatSession = await ChatHistory.findOne({ _id: sessionId, userId: req.user._id });
-      if (!chatSession) return res.status(404).json({ message: "Chat session nahi mili" });
+      if (!chatSession) return res.status(404).json({ message: "Session nahi mili" });
     } else {
-      // Naya session banao
       const title = await generateSessionTitle(message);
-      chatSession = await ChatHistory.create({
-        userId: req.user._id,
-        sessionTitle: title,
-        messages: [],
-      });
+      chatSession = await ChatHistory.create({ userId: req.user._id, sessionTitle: title, messages: [] });
     }
-
-    // AI se response lo (history ke saath)
-    const aiResponse = await chatWithBot(message, chatSession.messages.slice(-10)); // last 10 msgs
-
-    // Dono messages save karo
+    const aiResponse = await chatWithBot(message, chatSession.messages.slice(-10));
     chatSession.messages.push({ role: "user", content: message });
     chatSession.messages.push({ role: "assistant", content: aiResponse });
     chatSession.messageCount = chatSession.messages.length;
     chatSession.lastMessageAt = new Date();
     await chatSession.save();
-
-    res.status(200).json({
-      message: "Response ready!",
-      sessionId: chatSession._id,
-      response: aiResponse,
-    });
+    res.status(200).json({ message: "Response ready!", sessionId: chatSession._id, response: aiResponse });
   } catch (error) {
-    console.error("Chat Error:", error);
     res.status(500).json({ message: "Chat mein error aaya", error: error.message });
   }
 };
 
 export const getChatHistory = async (req, res) => {
   try {
-    const sessions = await ChatHistory.find({ userId: req.user._id })
-      .sort({ lastMessageAt: -1 })
-      .select("sessionTitle messageCount lastMessageAt");
+    const sessions = await ChatHistory.find({ userId: req.user._id }).sort({ lastMessageAt: -1 }).select("sessionTitle messageCount lastMessageAt");
     res.status(200).json({ data: sessions });
   } catch (error) {
     res.status(500).json({ message: "Chat history fetch nahi hui", error: error.message });
@@ -434,10 +507,7 @@ export const getChatHistory = async (req, res) => {
 
 export const getChatSession = async (req, res) => {
   try {
-    const session = await ChatHistory.findOne({
-      _id: req.params.sessionId,
-      userId: req.user._id,
-    });
+    const session = await ChatHistory.findOne({ _id: req.params.sessionId, userId: req.user._id });
     if (!session) return res.status(404).json({ message: "Session nahi mili" });
     res.status(200).json({ data: session });
   } catch (error) {

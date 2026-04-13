@@ -5,81 +5,91 @@ import {
   getAdminDashboard,
   getAllUsers,
   createFaculty,
+  updateFaculty,
+  deleteFaculty,
   getPendingRecruiters,
   approveRecruiter,
+  rejectRecruiter,
   getPendingOpportunities,
   approveOpportunity,
+  rejectOpportunity,
   createExternalOpportunity,
-  addCertification
+  updateOpportunity,
+  deleteOpportunity,
+  addCertification,
+  updateCertification,
+  deleteCertification,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getAIStats,
 } from "../controllers/admin.controller.js";
 
 const router = express.Router();
 
-router.get(
-  "/users",
-  authMiddleware,
-  roleMiddleware("admin"),
-  getAllUsers,
-  (req, res) => {
-    res.json({ message: "All users data" });
-  }
-);
+const admin = [authMiddleware, roleMiddleware("admin")];
+const adminOrFaculty = [authMiddleware, roleMiddleware(["admin", "faculty"])];
 
-router.post(
-  "/create-faculty",
-  authMiddleware,
-  roleMiddleware("admin"),
-  createFaculty
-);
+// // ── Dashboard ─────────────────────────────
+// router.get("/dashboard", ...admin, getAdminDashboard);
+// router.get("/users", ...admin, getAllUsers);
+// router.get("/ai-stats", ...admin, getAIStats);
 
-// get pending recruiters
-router.get(
-  "//pending-recruiters",
-  authMiddleware,
-  roleMiddleware("admin"),
-  getPendingRecruiters
-);
+// // ── Faculty ───────────────────────────────
+// router.post("/faculty", ...admin, createFaculty);
+// router.put("/faculty/:id", ...admin, updateFaculty);
+// router.delete("/faculty/:id", ...admin, deleteFaculty);
 
-// approve recruiter
-router.put(
- "/approve-recruiter/:id",
- authMiddleware,
-  roleMiddleware("admin"),
- approveRecruiter
-)
+// // ── Recruiters ────────────────────────────
+// router.get("/pending-recruiters", ...admin, getPendingRecruiters);
+// router.put("/approve-recruiter/:id", ...admin, approveRecruiter);
+// router.put("/reject-recruiter/:id", ...admin, rejectRecruiter);
 
-router.get(
-  "/dashboard", 
-  authMiddleware,
-  roleMiddleware("admin"), 
-  getAdminDashboard
-);
+// // ── Opportunities ─────────────────────────
+// router.get("/pending-opportunities", ...admin, getPendingOpportunities);
+// router.put("/approve-opportunity/:id", ...admin, approveOpportunity);
+// router.put("/reject-opportunity/:id", ...admin, rejectOpportunity);
+// router.post("/opportunity", ...adminOrFaculty, createExternalOpportunity);
+// router.put("/opportunity/:id", ...adminOrFaculty, updateOpportunity);
+// router.delete("/opportunity/:id", ...adminOrFaculty, deleteOpportunity);
 
-router.get(
-  "/pending-opportunities", 
-  authMiddleware,
-  roleMiddleware("admin"), 
-  getPendingOpportunities
-);
+// // ── Events ────────────────────────────────
+// router.post("/event", ...adminOrFaculty, createEvent);
+// router.put("/event/:id", ...adminOrFaculty, updateEvent);
+// router.delete("/event/:id", ...adminOrFaculty, deleteEvent);
 
-router.put(
-  "/approve-opportunity/:id", 
-   authMiddleware,
-  roleMiddleware("admin"),
-  approveOpportunity
-);
+// // ── Certifications ────────────────────────
+// router.post("/certification", ...admin, addCertification);
+// router.put("/certification/:id", ...admin, updateCertification);
+// router.delete("/certification/:id", ...admin, deleteCertification);
 
-router.post(
-  "/opportunity", 
-  authMiddleware,
-  roleMiddleware("admin"), 
-  createExternalOpportunity
-);
+// ── Events ── (faculty bhi kar sakti hai)
+router.post("/event", ...adminOrFaculty, createEvent);
+router.put("/event/:id", ...adminOrFaculty, updateEvent);
+router.delete("/event/:id", ...adminOrFaculty, deleteEvent);
 
-router.post(
-  "/certification", 
-  authMiddleware,
-  roleMiddleware("admin"),
-  addCertification);
+// ── Opportunities ── (faculty bhi kar sakti hai)
+router.post("/opportunity", ...adminOrFaculty, createExternalOpportunity);
+router.put("/opportunity/:id", ...adminOrFaculty, updateOpportunity);
+router.delete("/opportunity/:id", ...adminOrFaculty, deleteOpportunity);
+
+// ── Certifications ── (faculty bhi kar sakti hai)
+router.post("/certification", ...adminOrFaculty, addCertification);
+router.put("/certification/:id", ...adminOrFaculty, updateCertification);
+router.delete("/certification/:id", ...adminOrFaculty, deleteCertification);
+
+// ── Sirf Admin ke liye (ye same rahenge) ──
+router.get("/dashboard", ...admin, getAdminDashboard);
+router.get("/users", ...admin, getAllUsers);
+router.get("/ai-stats", ...admin, getAIStats);
+router.post("/faculty", ...admin, createFaculty);
+router.put("/faculty/:id", ...admin, updateFaculty);
+router.delete("/faculty/:id", ...admin, deleteFaculty);
+router.get("/pending-recruiters", ...admin, getPendingRecruiters);
+router.put("/approve-recruiter/:id", ...admin, approveRecruiter);
+router.put("/reject-recruiter/:id", ...admin, rejectRecruiter);
+router.get("/pending-opportunities", ...admin, getPendingOpportunities);
+router.put("/approve-opportunity/:id", ...admin, approveOpportunity);
+router.put("/reject-opportunity/:id", ...admin, rejectOpportunity);
 
 export default router;
