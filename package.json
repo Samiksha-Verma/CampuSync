@@ -1,0 +1,15 @@
+{
+  "name": "campusync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Orchestration for running every CampuSync backend service together in development - see README for details.",
+  "scripts": {
+    "predev": "node scripts/kill-ports.js",
+    "dev": "concurrently -n \"GATEWAY,AUTH,USER,EVENTS,OPPS,CERT,VAULT,AI,MOCKTEST,NOTIF\" -c \"cyan,green,yellow,blue,magenta,red,cyanBright,greenBright,yellowBright,blueBright\" \"npm run dev --prefix api-gateway\" \"npm run dev --prefix services/auth-service\" \"npm run dev --prefix services/user-service\" \"npm run dev --prefix services/events-service\" \"npm run dev --prefix services/opportunities-service\" \"npm run dev --prefix services/certification-service\" \"npm run dev --prefix services/document-vault-service\" \"npm run dev --prefix services/ai-service\" \"npm run dev --prefix services/mock-test-service\" \"npm run dev --prefix services/notification-service\"",
+    "start": "npm run dev",
+    "kill-ports": "node scripts/kill-ports.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+@theme {
+  /* Type */
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* Forest - primary brand accent (indigo-violet; token name kept as "forest" so
+     every existing forest-* utility across the app repoints automatically) */
+  --color-forest-50: #f4f2fd;
+  --color-forest-100: #e7e2fb;
+  --color-forest-200: #d1c7f6;
+  --color-forest-300: #b3a0ef;
+  --color-forest-400: #9276e7;
+  --color-forest-500: #6c5ce7;
+  --color-forest-600: #5844d6;
+  --color-forest-700: #4934c2;
+  --color-forest-800: #3a2896;
+  --color-forest-900: #2b1d6e;
+
+  /* Brass - secondary accent, used sparingly */
+  --color-brass-50: #fbf6ea;
+  --color-brass-100: #f5e9cb;
+  --color-brass-200: #ebd59d;
+  --color-brass-300: #dfbc6e;
+  --color-brass-400: #d3a94f;
+  --color-brass-500: #c99a43;
+  --color-brass-600: #ad7f32;
+  --color-brass-700: #8b6428;
+  --color-brass-800: #6b4d20;
+  --color-brass-900: #4d3818;
+
+  /* Ink - deep violet-black, structural chrome (sidebar, dark surfaces) */
+  --color-ink-50: #eeedf5;
+  --color-ink-100: #d7d3e8;
+  --color-ink-200: #b3abd1;
+  --color-ink-300: #8a7fb3;
+  --color-ink-400: #645a8c;
+  --color-ink-500: #453c68;
+  --color-ink-600: #2f2850;
+  --color-ink-700: #241f3d;
+  --color-ink-800: #1a1730;
+  --color-ink-900: #110f20;
+
+  /* Parchment - warm-neutral light ground */
+  --color-parchment: #f6f7f3;
+  --color-parchment-100: #fbfbf9;
+  --color-parchment-200: #e7e9e3;
+
+  /* Slate - violet-hue-biased neutral for text/borders */
+  --color-slate-50: #f5f4f6;
+  --color-slate-100: #e5e3e9;
+  --color-slate-200: #cdc9d4;
+  --color-slate-300: #aaa5b4;
+  --color-slate-400: #857f92;
+  --color-slate-500: #696476;
+  --color-slate-600: #56515f;
+  --color-slate-700: #423f49;
+  --color-slate-800: #302e36;
+  --color-slate-900: #201f24;
+
+  /* Semantic - deliberately separate from the brand accent */
+  --color-success: #2f9e6e;
+  --color-success-bg: #e4f5ec;
+  --color-warning: #c77d24;
+  --color-warning-bg: #fbeedd;
+  --color-danger: #c1443b;
+  --color-danger-bg: #fbe8e6;
+  --color-info: #4a6fa5;
+  --color-info-bg: #e9eff6;
+}
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-ink-800);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+/* Tabular numerals wherever digits line up - stat cards, timers, scores */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visible keyboard focus everywhere, not just default browser outline */
+:focus-visible {
+  outline: 2px solid var(--color-forest-500);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-brass-200);
+  color: var(--color-ink-900);
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-modal-in {
+  animation: modal-in 0.16s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-toast-in {
+  animation: toast-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

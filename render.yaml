@@ -1,0 +1,252 @@
+# Render Blueprint - deploys all 9 backend services + the API gateway in one shot.
+#
+# How to use: push this file to the repo, then in Render click New -> Blueprint and
+# point it at the repo. Render will show all 10 services below and ask you to fill in
+# every `sync: false` variable (the real secrets from your local .env files) before
+# the first deploy. See DEPLOYMENT.md for the exact value to paste into each one.
+#
+# Service-to-service URLs are hardcoded to Render's default public URL pattern
+# (https://<name>.onrender.com), which is deterministic from the `name:` field below.
+# If Render ever asks you to pick a different name because one of these is already
+# taken globally, update every OTHER service's env var that references it to match -
+# DEPLOYMENT.md has a table cross-referencing all of these.
+#
+# Plan/region: free tier, Singapore - change `plan`/`region` on every service below
+# if you want to switch either later (see DEPLOYMENT.md for the tradeoffs).
+
+services:
+  # ---------------- API Gateway ----------------
+  - name: campusync-gateway
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./api-gateway/Dockerfile
+    dockerContext: ./api-gateway
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: AUTH_SERVICE_URL
+        value: https://campusync-auth.onrender.com
+      - key: USER_SERVICE_URL
+        value: https://campusync-user.onrender.com
+      - key: EVENTS_SERVICE_URL
+        value: https://campusync-events.onrender.com
+      - key: OPPORTUNITIES_SERVICE_URL
+        value: https://campusync-opportunities.onrender.com
+      - key: CERTIFICATION_SERVICE_URL
+        value: https://campusync-certification.onrender.com
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://campusync-notification.onrender.com
+      - key: DOCUMENT_VAULT_SERVICE_URL
+        value: https://campusync-vault.onrender.com
+      - key: AI_SERVICE_URL
+        value: https://campusync-ai.onrender.com
+      - key: MOCK_TEST_SERVICE_URL
+        value: https://campusync-mocktest.onrender.com
+      # Comma-separated if you ever need more than one (e.g. a Vercel preview URL).
+      # localhost:5173 is always allowed too - see api-gateway/server.js.
+      - key: FRONTEND_ORIGIN
+        sync: false
+
+  # ---------------- Auth Service ----------------
+  - name: campusync-auth
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/auth-service/Dockerfile
+    dockerContext: ./services/auth-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_STUDENT_EXPIRES_IN
+        value: 1d
+      - key: JWT_STAFF_EXPIRES_IN
+        value: 7d
+      - key: OTP_EXPIRES_MIN
+        value: "5"
+      - key: INTERNAL_SERVICE_SECRET
+        sync: false
+      - key: EMAIL_SERVICE
+        value: gmail
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      # Only used by `npm run seed:admin`, run manually from Render's Shell tab -
+      # server.js itself never reads these at boot.
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+
+  # ---------------- User Service ----------------
+  - name: campusync-user
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/user-service/Dockerfile
+    dockerContext: ./services/user-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # ---------------- Events Service ----------------
+  - name: campusync-events
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/events-service/Dockerfile
+    dockerContext: ./services/events-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://campusync-notification.onrender.com
+      - key: INTERNAL_SERVICE_SECRET
+        sync: false
+
+  # ---------------- Opportunities Service ----------------
+  - name: campusync-opportunities
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/opportunities-service/Dockerfile
+    dockerContext: ./services/opportunities-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://campusync-notification.onrender.com
+      - key: INTERNAL_SERVICE_SECRET
+        sync: false
+
+  # ---------------- Certification Service ----------------
+  - name: campusync-certification
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/certification-service/Dockerfile
+    dockerContext: ./services/certification-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        value: https://campusync-notification.onrender.com
+      - key: INTERNAL_SERVICE_SECRET
+        sync: false
+
+  # ---------------- Document Vault Service ----------------
+  - name: campusync-vault
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/document-vault-service/Dockerfile
+    dockerContext: ./services/document-vault-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+  # ---------------- AI Service ----------------
+  - name: campusync-ai
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/ai-service/Dockerfile
+    dockerContext: ./services/ai-service
+    healthCheckPath: /health
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DOCUMENT_VAULT_SERVICE_URL
+        value: https://campusync-vault.onrender.com
+      - key: USER_SERVICE_URL
+        value: https://campusync-user.onrender.com
+      - key: OPPORTUNITIES_SERVICE_URL
+        value: https://campusync-opportunities.onrender.com
+
+  # ---------------- Mock Test Service ----------------
+  - name: campusync-mocktest
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/mock-test-service/Dockerfile
+    dockerContext: ./services/mock-test-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ---------------- Notification Service ----------------
+  - name: campusync-notification
+    type: web
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./services/notification-service/Dockerfile
+    dockerContext: ./services/notification-service
+    healthCheckPath: /health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: INTERNAL_SERVICE_SECRET
+        sync: false
+      - key: AUTH_SERVICE_URL
+        value: https://campusync-auth.onrender.com
+      - key: EMAIL_SERVICE
+        value: gmail
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      # MUST match the gateway's FRONTEND_ORIGIN exactly - this is Socket.io's own
+      # separate CORS check (see services/notification-service/socket/socketServer.js).
+      - key: FRONTEND_ORIGIN
+        sync: false
