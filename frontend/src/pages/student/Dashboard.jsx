@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { CalendarDays, Briefcase, Award, Bell, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { listEvents } from '../../api/events';
@@ -116,10 +117,20 @@ function DashboardTabContent({ tab, events, opportunities, certifications }) {
         {events.slice(0, 5).map((e) => {
           const dl = deadlineMeta(e.deadline);
           return (
-            <Card key={e._id} className="flex items-center justify-between gap-4 p-4">
-              <div className="min-w-0">
+            <Card key={e._id} className="flex items-center gap-4 p-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-forest-600 to-brass-500">
+                {e.bannerImageUrl ? (
+                  <img src={e.bannerImageUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <CalendarDays size={18} className="text-white/80" strokeWidth={1.5} />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-ink-800">{e.name}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{e.organizingClub}</p>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  {e.organizingClub}
+                  {e.eventDate ? ` · ${format(new Date(e.eventDate), 'MMM d')}` : ''}
+                </p>
               </div>
               <Badge variant={dl.variant}>{dl.label}</Badge>
             </Card>

@@ -27,9 +27,20 @@ const eventSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    // When the event itself happens - distinct from `deadline` (the registration
+    // cutoff). Required going forward; events created before this field existed
+    // simply won't have one until an Admin/Faculty edits them to add it.
+    eventDate: {
+      type: Date,
+      required: true,
+    },
     deadline: {
       type: Date,
       required: true,
+    },
+    bannerImageUrl: {
+      type: String,
+      default: '',
     },
     registrationLink: {
       type: String,

@@ -1,8 +1,9 @@
 const Event = require('../models/Event');
 const notify = require('../utils/notify');
+const uploadToCloudinary = require('../utils/uploadToCloudinary');
 
-const REQUIRED_FIELDS = ['name', 'organizingClub', 'coordinatorName', 'contactInfo', 'deadline', 'registrationLink'];
-const UPDATABLE_FIELDS = ['name', 'organizingClub', 'coordinatorName', 'contactInfo', 'description', 'deadline', 'registrationLink'];
+const REQUIRED_FIELDS = ['name', 'organizingClub', 'coordinatorName', 'contactInfo', 'eventDate', 'deadline', 'registrationLink'];
+const UPDATABLE_FIELDS = ['name', 'organizingClub', 'coordinatorName', 'contactInfo', 'description', 'eventDate', 'deadline', 'registrationLink'];
 
 // Admin/Faculty can pass ?includeExpired=true to see history; Students never see expired events.
 const buildExpiryFilter = (req) => {
@@ -35,6 +36,8 @@ const getEvent = async (req, res) => {
 };
 
 // POST /events (Admin/Faculty only)
+// multipart/form-data - upload.single('bannerImage') middleware puts the optional
+// image on req.file, everything else lands on req.body as strings like any other form.
 const createEvent = async (req, res) => {
   try {
     for (const field of REQUIRED_FIELDS) {
@@ -43,14 +46,22 @@ const createEvent = async (req, res) => {
       }
     }
 
+    let bannerImageUrl = '';
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      bannerImageUrl = result.secure_url;
+    }
+
     const event = await Event.create({
       name: req.body.name,
       organizingClub: req.body.organizingClub,
       coordinatorName: req.body.coordinatorName,
       contactInfo: req.body.contactInfo,
       description: req.body.description,
+      eventDate: req.body.eventDate,
       deadline: req.body.deadline,
       registrationLink: req.body.registrationLink,
+      bannerImageUrl,
       createdBy: req.user.id,
     });
 
@@ -68,11 +79,19 @@ const createEvent = async (req, res) => {
 };
 
 // PUT /events/:id (Admin/Faculty only, creator-or-admin - req.record set by ownership middleware)
+// multipart/form-data, same shape as createEvent - a new file replaces the existing
+// banner; no file means the current bannerImageUrl (if any) is left untouched.
 const updateEvent = async (req, res) => {
   try {
     for (const field of UPDATABLE_FIELDS) {
       if (req.body[field] !== undefined) req.record[field] = req.body[field];
     }
+
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      req.record.bannerImageUrl = result.secure_url;
+    }
+
     await req.record.save();
 
     await notify({

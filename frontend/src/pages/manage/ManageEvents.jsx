@@ -1,18 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, Plus, Pencil, Trash2 } from 'lucide-react';
+import { CalendarDays, Plus, Pencil, Trash2, ImagePlus } from 'lucide-react';
 import { listEvents, createEvent, updateEvent, deleteEvent } from '../../api/events';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Field, Input, Textarea } from '../../components/ui/Input';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ListSkeleton } from '../../components/ui/Skeleton';
 import { Modal } from '../../components/ui/Modal';
-import { deadlineMeta } from '../../lib/deadline';
+import { EventCard } from '../../components/EventCard';
 
 const EMPTY_FORM = {
   name: '',
@@ -20,8 +18,11 @@ const EMPTY_FORM = {
   coordinatorName: '',
   contactInfo: '',
   description: '',
+  eventDate: '',
   deadline: '',
   registrationLink: '',
+  bannerImageFile: null,
+  existingBannerImageUrl: '',
 };
 
 const toDateInput = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : '');
@@ -34,6 +35,7 @@ export default function ManageEvents({ scope }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const fileInputRef = useRef(null);
 
   const { data: events = [], isLoading } = useQuery({ queryKey: ['events', 'all'], queryFn: () => listEvents(true) });
 
@@ -86,16 +88,41 @@ export default function ManageEvents({ scope }) {
       coordinatorName: event.coordinatorName,
       contactInfo: event.contactInfo,
       description: event.description || '',
+      eventDate: toDateInput(event.eventDate),
       deadline: toDateInput(event.deadline),
       registrationLink: event.registrationLink,
+      bannerImageFile: null,
+      existingBannerImageUrl: event.bannerImageUrl || '',
     });
     setModalOpen(true);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setForm((f) => ({ ...f, bannerImageFile: file }));
+  };
+
+  // Local preview for a newly-picked file needs an object URL - derived during
+  // render (not stored in state) so the effect below only ever revokes it, never
+  // triggers another render.
+  const previewUrl = useMemo(
+    () => (form.bannerImageFile ? URL.createObjectURL(form.bannerImageFile) : ''),
+    [form.bannerImageFile]
+  );
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const displayedImage = previewUrl || form.existingBannerImageUrl;
+
   const submit = (e) => {
     e.preventDefault();
-    if (editing) update.mutate({ id: editing._id, payload: form });
-    else create.mutate(form);
+    // eslint-disable-next-line no-unused-vars -- stripped out, never sent to the API
+    const { existingBannerImageUrl: _existingBannerImageUrl, ...payload } = form;
+    if (editing) update.mutate({ id: editing._id, payload });
+    else create.mutate(payload);
   };
 
   return (
@@ -121,30 +148,22 @@ export default function ManageEvents({ scope }) {
         />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {sorted.map((event) => {
-            const dl = deadlineMeta(event.deadline);
-            return (
-              <Card key={event._id} className="flex flex-col">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
-                    <CalendarDays size={18} strokeWidth={1.9} />
-                  </div>
-                  <Badge variant={dl.variant}>{dl.label}</Badge>
-                </div>
-                <h3 className="font-display text-lg font-semibold leading-snug text-ink-800">{event.name}</h3>
-                <p className="mt-0.5 text-sm font-medium text-forest-700">{event.organizingClub}</p>
-                {event.description ? <p className="mt-2.5 line-clamp-2 text-sm text-slate-500">{event.description}</p> : null}
-                <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
+          {sorted.map((event) => (
+            <EventCard
+              key={event._id}
+              event={event}
+              footer={
+                <>
                   <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(event)}>
                     <Pencil size={13} /> Edit
                   </Button>
                   <Button size="sm" variant="danger" onClick={() => setPendingDelete(event)}>
                     <Trash2 size={13} />
                   </Button>
-                </div>
-              </Card>
-            );
-          })}
+                </>
+              }
+            />
+          ))}
         </div>
       )}
 
@@ -163,6 +182,25 @@ export default function ManageEvents({ scope }) {
         }
       >
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field label="Banner image" hint="Optional — shown at the top of the event card. Falls back to a gradient if skipped.">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 transition-colors hover:border-forest-400"
+              >
+                {displayedImage ? (
+                  <img src={displayedImage} alt="Banner preview" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex flex-col items-center gap-1.5 text-sm text-slate-400">
+                    <ImagePlus size={20} />
+                    Click to add a banner image
+                  </span>
+                )}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </Field>
+          </div>
           <Field label="Event name" htmlFor="ev-name">
             <Input id="ev-name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </Field>
@@ -175,12 +213,17 @@ export default function ManageEvents({ scope }) {
           <Field label="Contact info" htmlFor="ev-contact">
             <Input id="ev-contact" required value={form.contactInfo} onChange={(e) => setForm({ ...form, contactInfo: e.target.value })} />
           </Field>
-          <Field label="Registration deadline" htmlFor="ev-deadline">
+          <Field label="Event date" htmlFor="ev-date" hint="When the event actually happens">
+            <Input id="ev-date" type="date" required value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} />
+          </Field>
+          <Field label="Registration deadline" htmlFor="ev-deadline" hint="Last day students can register">
             <Input id="ev-deadline" type="date" required value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} />
           </Field>
-          <Field label="Registration link" htmlFor="ev-link">
-            <Input id="ev-link" type="url" required value={form.registrationLink} onChange={(e) => setForm({ ...form, registrationLink: e.target.value })} />
-          </Field>
+          <div className="sm:col-span-2">
+            <Field label="Registration link" htmlFor="ev-link">
+              <Input id="ev-link" type="url" required value={form.registrationLink} onChange={(e) => setForm({ ...form, registrationLink: e.target.value })} />
+            </Field>
+          </div>
           <div className="sm:col-span-2">
             <Field label="Description" htmlFor="ev-desc">
               <Textarea id="ev-desc" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
