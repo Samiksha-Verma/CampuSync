@@ -147,7 +147,7 @@ export default function ManageEvents({ scope }) {
           action={<Button onClick={openCreate}><Plus size={16} /> New event</Button>}
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-2">
           {sorted.map((event) => (
             <EventCard
               key={event._id}

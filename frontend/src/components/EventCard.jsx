@@ -21,7 +21,7 @@ export const EventCard = ({ event, footer }) => {
   const dl = deadlineMeta(event.deadline);
 
   return (
-    <Card className="flex h-[360px] w-full max-w-sm flex-col overflow-hidden p-0 transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <Card className="flex h-[420px] w-full max-w-sm flex-col overflow-hidden p-0 transition-all hover:-translate-y-0.5 hover:shadow-md">
       <div className="h-28 w-full shrink-0 bg-gradient-to-br from-forest-600 via-forest-500 to-brass-500">
         {event.bannerImageUrl ? (
           <img src={event.bannerImageUrl} alt="" className="h-full w-full object-cover" />
@@ -33,17 +33,17 @@ export const EventCard = ({ event, footer }) => {
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden p-4">
-        <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="mb-3.5 flex items-center justify-between gap-2">
           <Badge variant="forest" className="truncate">{event.organizingClub}</Badge>
           <Badge variant={dl.variant} className="shrink-0">{dl.label}</Badge>
         </div>
 
         <h3 className="line-clamp-1 font-display text-base font-semibold leading-snug text-ink-800">{event.name}</h3>
-        <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-500">
+        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">
           {truncateWords(event.description, 18)}
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs text-slate-500">
+        <div className="mt-4 grid grid-cols-2 gap-x-2 gap-y-2 text-xs text-slate-500">
           <span className="flex items-center gap-1.5 truncate" title="Event date">
             <CalendarDays size={12} className="shrink-0" />
             <span className="font-medium text-ink-700">Event</span>{' '}
@@ -61,7 +61,7 @@ export const EventCard = ({ event, footer }) => {
           </span>
         </div>
 
-        {footer ? <div className="mt-auto flex gap-2 border-t border-slate-100 pt-3">{footer}</div> : null}
+        {footer ? <div className="mt-auto flex gap-2 border-t border-slate-100 pt-4">{footer}</div> : null}
       </div>
     </Card>
   );
