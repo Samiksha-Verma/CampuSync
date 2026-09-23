@@ -64,7 +64,7 @@ export default function Events() {
           }
         />
       ) : (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((event) => {
             const dl = deadlineMeta(event.deadline);
             return (

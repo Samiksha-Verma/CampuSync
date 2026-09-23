@@ -21,7 +21,7 @@ export const EventCard = ({ event, footer }) => {
   const dl = deadlineMeta(event.deadline);
 
   return (
-    <Card className="flex h-[420px] w-full max-w-sm flex-col overflow-hidden p-0 transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <Card className="flex h-[420px] w-full flex-col overflow-hidden p-0 transition-all hover:-translate-y-0.5 hover:shadow-md">
       <div className="h-28 w-full shrink-0 bg-gradient-to-br from-forest-600 via-forest-500 to-brass-500">
         {event.bannerImageUrl ? (
           <img src={event.bannerImageUrl} alt="" className="h-full w-full object-cover" />
