@@ -1,5 +1,6 @@
 const Certification = require('../models/Certification');
 const notify = require('../utils/notify');
+const uploadToCloudinary = require('../utils/uploadToCloudinary');
 
 const REQUIRED_FIELDS = ['courseName', 'platform', 'deadline', 'externalLink'];
 const UPDATABLE_FIELDS = ['courseName', 'platform', 'companyName', 'deadline', 'description', 'externalLink', 'category'];
@@ -49,7 +50,14 @@ const createCertification = async (req, res) => {
       }
     }
 
+    let bannerImageUrl = '';
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      bannerImageUrl = result.secure_url;
+    }
+
     const certification = await Certification.create({
+      bannerImageUrl,
       courseName: req.body.courseName,
       platform: req.body.platform,
       companyName: req.body.companyName,
@@ -78,6 +86,11 @@ const updateCertification = async (req, res) => {
   try {
     for (const field of UPDATABLE_FIELDS) {
       if (req.body[field] !== undefined) req.record[field] = req.body[field];
+    }
+    // A new file replaces the banner; no file leaves the current one untouched.
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.buffer);
+      req.record.bannerImageUrl = result.secure_url;
     }
     await req.record.save();
 

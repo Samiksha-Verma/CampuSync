@@ -21,6 +21,23 @@ const opportunitySchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    location: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    // Bare domain (e.g. "google.com") - used by the frontend to fetch a company logo.
+    companyWebsite: {
+      type: String,
+      default: '',
+      trim: true,
+      lowercase: true,
+    },
+    roleType: {
+      type: String,
+      enum: ['Remote', 'Full-time', 'Internship'],
+      required: true,
+    },
     stipendOrSalary: {
       type: String,
       default: '',

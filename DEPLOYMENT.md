@@ -87,7 +87,7 @@ Every `sync: false` var below, Render will prompt for during Blueprint setup. Pa
 | `INTERNAL_SERVICE_SECRET` | same value as auth/notification |
 | `NOTIFICATION_SERVICE_URL` | already filled in `render.yaml` |
 
-`campusync-events` additionally needs (event banner uploads, added after initial deploy - if you deployed before this feature existed, add these to the existing service in Render's Environment tab and it'll redeploy):
+`campusync-events` and `campusync-certification` additionally need (event / course banner uploads, added after initial deploy - if you deployed before these features existed, add these to each existing service in Render's Environment tab and it'll redeploy):
 | Key | Value |
 |---|---|
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | copy (same Cloudinary account as user-service/document-vault-service) |

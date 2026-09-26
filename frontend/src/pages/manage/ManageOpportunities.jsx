@@ -5,19 +5,22 @@ import { listOpportunities, createOpportunity, updateOpportunity, deleteOpportun
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Field, Input, Textarea, Select } from '../../components/ui/Input';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ListSkeleton } from '../../components/ui/Skeleton';
 import { Modal } from '../../components/ui/Modal';
-import { deadlineMeta } from '../../lib/deadline';
+import { OpportunityCard } from '../../components/OpportunityCard';
+
+const ROLE_TYPES = ['Remote', 'Full-time', 'Internship'];
 
 const EMPTY_FORM = {
   companyName: '',
   role: '',
   type: 'internship',
+  roleType: 'Full-time',
+  location: '',
+  companyWebsite: '',
   eligibilityCriteria: '',
   skillsRequired: '',
   stipendOrSalary: '',
@@ -94,6 +97,9 @@ export default function ManageOpportunities({ scope }) {
       companyName: opp.companyName,
       role: opp.role,
       type: opp.type,
+      roleType: opp.roleType || 'Full-time',
+      location: opp.location || '',
+      companyWebsite: opp.companyWebsite || '',
       eligibilityCriteria: opp.eligibilityCriteria || '',
       skillsRequired: (opp.skillsRequired || []).join(', '),
       stipendOrSalary: opp.stipendOrSalary || '',
@@ -128,34 +134,23 @@ export default function ManageOpportunities({ scope }) {
           action={<Button onClick={openCreate}><Plus size={16} /> New opening</Button>}
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {sorted.map((opp) => {
-            const dl = deadlineMeta(opp.deadline);
-            return (
-              <Card key={opp._id} className="flex flex-col">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
-                    <Briefcase size={18} strokeWidth={1.9} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={opp.type === 'internship' ? 'brass' : 'forest'}>{opp.type}</Badge>
-                    <Badge variant={dl.variant}>{dl.label}</Badge>
-                  </div>
-                </div>
-                <h3 className="font-display text-lg font-semibold leading-snug text-ink-800">{opp.role}</h3>
-                <p className="mt-0.5 text-sm font-medium text-forest-700">{opp.companyName}</p>
-                {opp.description ? <p className="mt-2.5 line-clamp-2 text-sm text-slate-500">{opp.description}</p> : null}
-                <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {sorted.map((opp) => (
+            <OpportunityCard
+              key={opp._id}
+              opportunity={opp}
+              footer={
+                <>
                   <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(opp)}>
                     <Pencil size={13} /> Edit
                   </Button>
                   <Button size="sm" variant="danger" onClick={() => setPendingDelete(opp)}>
                     <Trash2 size={13} />
                   </Button>
-                </div>
-              </Card>
-            );
-          })}
+                </>
+              }
+            />
+          ))}
         </div>
       )}
 
@@ -180,11 +175,26 @@ export default function ManageOpportunities({ scope }) {
           <Field label="Role" htmlFor="op-role">
             <Input id="op-role" required value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
           </Field>
+          <div className="sm:col-span-2">
+            <Field label="Company website" htmlFor="op-website" hint="Optional — used to show the company logo. e.g. google.com">
+              <Input id="op-website" value={form.companyWebsite} onChange={(e) => setForm({ ...form, companyWebsite: e.target.value })} placeholder="google.com or https://google.com" />
+            </Field>
+          </div>
           <Field label="Type" htmlFor="op-type">
             <Select id="op-type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
               <option value="internship">Internship</option>
               <option value="job">Job</option>
             </Select>
+          </Field>
+          <Field label="Role type" htmlFor="op-roletype" hint="Shown as a filter to students.">
+            <Select id="op-roletype" value={form.roleType} onChange={(e) => setForm({ ...form, roleType: e.target.value })}>
+              {ROLE_TYPES.map((rt) => (
+                <option key={rt} value={rt}>{rt}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Location" htmlFor="op-location">
+            <Input id="op-location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. Bengaluru, or Remote" />
           </Field>
           <Field label="Stipend / salary" htmlFor="op-pay">
             <Input id="op-pay" value={form.stipendOrSalary} onChange={(e) => setForm({ ...form, stipendOrSalary: e.target.value })} placeholder="e.g. ₹25,000/month" />

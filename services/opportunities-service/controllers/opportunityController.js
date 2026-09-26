@@ -1,12 +1,26 @@
 const Opportunity = require('../models/Opportunity');
 const notify = require('../utils/notify');
 
-const REQUIRED_FIELDS = ['companyName', 'role', 'deadline', 'applicationLink', 'type'];
+const ROLE_TYPES = ['Remote', 'Full-time', 'Internship'];
+
+// "https://www.Google.com/careers" -> "google.com". Returns '' for empty input and
+// null when the value can't be read as a domain.
+const normalizeDomain = (raw) => {
+  const value = String(raw ?? '').trim().toLowerCase();
+  if (!value) return '';
+  const host = value.replace(/^[a-z][a-z0-9+.-]*:\/\//, '').split(/[/?#]/)[0].replace(/^www\./, '');
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host) ? host : null;
+};
+
+const REQUIRED_FIELDS =['companyName', 'role', 'deadline', 'applicationLink', 'type', 'roleType'];
 const UPDATABLE_FIELDS = [
   'companyName',
   'role',
   'eligibilityCriteria',
   'skillsRequired',
+  'location',
+  'companyWebsite',
+  'roleType',
   'stipendOrSalary',
   'deadline',
   'applicationLink',
@@ -63,11 +77,23 @@ const createOpportunity = async (req, res) => {
       return res.status(400).json({ message: 'type must be "internship" or "job"' });
     }
 
+    if (!ROLE_TYPES.includes(req.body.roleType)) {
+      return res.status(400).json({ message: `roleType must be one of ${ROLE_TYPES.join(', ')}` });
+    }
+
+    const companyWebsite = normalizeDomain(req.body.companyWebsite);
+    if (companyWebsite === null) {
+      return res.status(400).json({ message: 'companyWebsite must be a valid domain, e.g. google.com' });
+    }
+
     const opportunity = await Opportunity.create({
       companyName: req.body.companyName,
+      companyWebsite,
       role: req.body.role,
       eligibilityCriteria: req.body.eligibilityCriteria,
       skillsRequired: req.body.skillsRequired,
+      location: req.body.location,
+      roleType: req.body.roleType,
       stipendOrSalary: req.body.stipendOrSalary,
       deadline: req.body.deadline,
       applicationLink: req.body.applicationLink,
@@ -94,6 +120,18 @@ const updateOpportunity = async (req, res) => {
   try {
     if (req.body.type !== undefined && !['internship', 'job'].includes(req.body.type)) {
       return res.status(400).json({ message: 'type must be "internship" or "job"' });
+    }
+
+    if (req.body.roleType !== undefined && !ROLE_TYPES.includes(req.body.roleType)) {
+      return res.status(400).json({ message: `roleType must be one of ${ROLE_TYPES.join(', ')}` });
+    }
+
+    if (req.body.companyWebsite !== undefined) {
+      const companyWebsite = normalizeDomain(req.body.companyWebsite);
+      if (companyWebsite === null) {
+        return res.status(400).json({ message: 'companyWebsite must be a valid domain, e.g. google.com' });
+      }
+      req.body.companyWebsite = companyWebsite;
     }
 
     for (const field of UPDATABLE_FIELDS) {

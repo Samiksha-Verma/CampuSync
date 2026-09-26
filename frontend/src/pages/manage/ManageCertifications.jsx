@@ -1,20 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Award, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Award, Plus, Pencil, Trash2, ImagePlus } from 'lucide-react';
 import { listCertifications, createCertification, updateCertification, deleteCertification } from '../../api/certifications';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Field, Input, Textarea } from '../../components/ui/Input';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ListSkeleton } from '../../components/ui/Skeleton';
 import { Modal } from '../../components/ui/Modal';
-import { deadlineMeta } from '../../lib/deadline';
+import { CertificationCard } from '../../components/CertificationCard';
 
-const EMPTY_FORM = { courseName: '', platform: '', companyName: '', deadline: '', externalLink: '', category: '', description: '' };
+const EMPTY_FORM = {
+  courseName: '',
+  platform: '',
+  companyName: '',
+  deadline: '',
+  externalLink: '',
+  category: '',
+  description: '',
+  bannerImageFile: null,
+  existingBannerImageUrl: '',
+};
 
 const toDateInput = (iso) => (iso ? new Date(iso).toISOString().slice(0, 10) : '');
 
@@ -26,6 +34,7 @@ export default function ManageCertifications({ scope }) {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const fileInputRef = useRef(null);
 
   const { data: certifications = [], isLoading } = useQuery({
     queryKey: ['certifications', 'all'],
@@ -83,14 +92,37 @@ export default function ManageCertifications({ scope }) {
       externalLink: cert.externalLink,
       category: cert.category || '',
       description: cert.description || '',
+      bannerImageFile: null,
+      existingBannerImageUrl: cert.bannerImageUrl || '',
     });
     setModalOpen(true);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setForm((f) => ({ ...f, bannerImageFile: file }));
+  };
+
+  // Preview URL for a newly-picked file is derived during render; the effect only
+  // revokes it on change/unmount, so it never sets state.
+  const previewUrl = useMemo(
+    () => (form.bannerImageFile ? URL.createObjectURL(form.bannerImageFile) : ''),
+    [form.bannerImageFile]
+  );
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const displayedImage = previewUrl || form.existingBannerImageUrl;
+
   const submit = (e) => {
     e.preventDefault();
-    if (editing) update.mutate({ id: editing._id, payload: form });
-    else create.mutate(form);
+    // eslint-disable-next-line no-unused-vars -- stripped out, never sent to the API
+    const { existingBannerImageUrl: _existingBannerImageUrl, ...payload } = form;
+    if (editing) update.mutate({ id: editing._id, payload });
+    else create.mutate(payload);
   };
 
   return (
@@ -111,36 +143,23 @@ export default function ManageCertifications({ scope }) {
           action={<Button onClick={openCreate}><Plus size={16} /> New certification</Button>}
         />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {sorted.map((cert) => {
-            const dl = deadlineMeta(cert.deadline);
-            return (
-              <Card key={cert._id} className="flex flex-col">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
-                    <Award size={18} strokeWidth={1.9} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {cert.category ? <Badge variant="neutral">{cert.category}</Badge> : null}
-                    <Badge variant={dl.variant}>{dl.label}</Badge>
-                  </div>
-                </div>
-                <h3 className="font-display text-lg font-semibold leading-snug text-ink-800">{cert.courseName}</h3>
-                <p className="mt-0.5 text-sm font-medium text-forest-700">
-                  {cert.platform}{cert.companyName ? ` · ${cert.companyName}` : ''}
-                </p>
-                {cert.description ? <p className="mt-2.5 line-clamp-2 text-sm text-slate-500">{cert.description}</p> : null}
-                <div className="mt-5 flex gap-2 border-t border-slate-100 pt-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {sorted.map((cert) => (
+            <CertificationCard
+              key={cert._id}
+              certification={cert}
+              footer={
+                <>
                   <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(cert)}>
                     <Pencil size={13} /> Edit
                   </Button>
                   <Button size="sm" variant="danger" onClick={() => setPendingDelete(cert)}>
                     <Trash2 size={13} />
                   </Button>
-                </div>
-              </Card>
-            );
-          })}
+                </>
+              }
+            />
+          ))}
         </div>
       )}
 
@@ -159,14 +178,33 @@ export default function ManageCertifications({ scope }) {
         }
       >
         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field label="Course banner" hint="Optional — shown at the top of the course card. Falls back to a gradient if skipped.">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 transition-colors hover:border-forest-400"
+              >
+                {displayedImage ? (
+                  <img src={displayedImage} alt="Banner preview" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex flex-col items-center gap-1.5 text-sm text-slate-400">
+                    <ImagePlus size={20} />
+                    Click to add a course banner
+                  </span>
+                )}
+              </button>
+              <input ref={fileInputRef} id="ct-banner" type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </Field>
+          </div>
           <Field label="Course name" htmlFor="ct-course">
             <Input id="ct-course" required value={form.courseName} onChange={(e) => setForm({ ...form, courseName: e.target.value })} />
           </Field>
           <Field label="Platform" htmlFor="ct-platform">
             <Input id="ct-platform" required value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} placeholder="Coursera, AWS Skill Builder…" />
           </Field>
-          <Field label="Issuing company" htmlFor="ct-company">
-            <Input id="ct-company" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} />
+          <Field label="Provider" htmlFor="ct-company">
+            <Input id="ct-company" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} placeholder="Google, IBM, Meta…" />
           </Field>
           <Field label="Category" htmlFor="ct-cat">
             <Input id="ct-cat" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Cloud, Data, Security…" />

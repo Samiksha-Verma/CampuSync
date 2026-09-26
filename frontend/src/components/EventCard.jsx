@@ -3,15 +3,7 @@ import { format } from 'date-fns';
 import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { deadlineMeta } from '../lib/deadline';
-
-// Word-count truncation (not just CSS line-clamp) so a very long description never
-// pushes the fixed-height card taller - a short one and a long one render identically.
-const truncateWords = (text, maxWords = 18) => {
-  if (!text) return '';
-  const words = text.trim().split(/\s+/);
-  if (words.length <= maxWords) return text;
-  return `${words.slice(0, maxWords).join(' ')}...`;
-};
+import { truncateWords } from '../lib/truncateWords';
 
 // Shared between the student Events page and Admin/Faculty's ManageEvents so both
 // stay visually identical - `footer` is the one thing that differs (a Register

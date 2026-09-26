@@ -36,6 +36,11 @@ const certificationSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    // Cloudinary secure_url of the course banner; empty means the frontend shows a placeholder.
+    bannerImageUrl: {
+      type: String,
+      default: '',
+    },
     // Auth-service Admin/Faculty _id of whoever posted this certification.
     createdBy: {
       type: String,
