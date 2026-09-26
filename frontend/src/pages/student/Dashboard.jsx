@@ -16,9 +16,9 @@ import { deadlineMeta } from '../../lib/deadline';
 import { cn } from '../../lib/cn';
 
 const TABS = [
-  { value: 'events', label: 'Events', icon: CalendarDays },
-  { value: 'opportunities', label: 'Internships & Jobs', icon: Briefcase },
-  { value: 'certifications', label: 'Certifications', icon: Award },
+  { value: 'events', label: 'Events', short: 'Events', icon: CalendarDays },
+  { value: 'opportunities', label: 'Internships & Jobs', short: 'Jobs', icon: Briefcase },
+  { value: 'certifications', label: 'Certifications', short: 'Certs', icon: Award },
 ];
 
 export default function StudentDashboard() {
@@ -57,41 +57,45 @@ export default function StudentDashboard() {
       </h1>
       <p className="mt-1.5 text-sm text-slate-500">Here's what's new since you last checked in.</p>
 
-      <div className="mt-7 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:mt-7 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         {stats.map(({ label, value, icon: Icon, to }) => (
           <Link key={label} to={to}>
             <Card className="transition-all hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex items-start justify-between">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-forest-50 text-forest-700">
+              <div className="flex items-center gap-4 sm:block">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
                   <Icon size={16} strokeWidth={1.9} />
                 </div>
+                <div className="min-w-0">
+                  <p className="font-mono text-2xl font-semibold tabular-nums text-ink-800 sm:mt-3">{value}</p>
+                  <p className="mt-0.5 text-sm text-slate-500">{label}</p>
+                </div>
               </div>
-              <p className="mt-3 font-mono text-2xl font-semibold tabular-nums text-ink-800">{value}</p>
-              <p className="mt-0.5 text-sm text-slate-500">{label}</p>
             </Card>
           </Link>
         ))}
       </div>
 
       <div className="mt-9">
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex gap-1.5 rounded-lg bg-slate-100 p-1">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full gap-1.5 rounded-lg bg-slate-100 p-1 sm:w-auto">
             {TABS.map((t) => (
               <button
                 key={t.value}
                 onClick={() => setTab(t.value)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors',
+                  'flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2.5 text-sm font-medium transition-colors sm:flex-none sm:px-3.5 sm:py-1.5',
                   tab === t.value ? 'bg-white text-ink-800 shadow-sm' : 'text-slate-500 hover:text-ink-700'
                 )}
               >
-                <t.icon size={14} /> {t.label}
+                <t.icon size={14} className="hidden min-[420px]:block sm:block" />
+                <span className="sm:hidden">{t.short}</span>
+                <span className="hidden sm:inline">{t.label}</span>
               </button>
             ))}
           </div>
           <Link
             to={`/student/${tab}`}
-            className="flex items-center gap-1 text-sm font-medium text-forest-700 hover:text-forest-800"
+            className="flex items-center gap-1 self-end py-2.5 text-sm font-medium text-forest-700 hover:text-forest-800 sm:self-auto"
           >
             View all <ArrowRight size={14} />
           </Link>

@@ -80,13 +80,13 @@ export default function FacultyAccounts() {
       ) : (
         <div className="flex flex-col gap-3">
           {requests.map((r) => (
-            <Card key={r._id} className="flex items-center justify-between gap-4 p-4">
+            <Card key={r._id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                   <p className="text-sm font-medium text-ink-800">{r.name}</p>
                   {r.department ? <Badge variant="neutral">{r.department}</Badge> : null}
                 </div>
-                <p className="mt-0.5 text-sm text-slate-500">{r.email}</p>
+                <p className="mt-0.5 break-all text-sm text-slate-500">{r.email}</p>
                 <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
                   <Clock size={12} /> Applied {formatDistanceToNow(new Date(r.createdAt), { addSuffix: true })}
                 </p>
@@ -96,7 +96,7 @@ export default function FacultyAccounts() {
               </div>
 
               {r.status === 'pending' ? (
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 gap-2 max-sm:[&>button]:flex-1">
                   <Button size="sm" variant="danger" onClick={() => setRejecting(r)}>
                     <XCircle size={14} /> Reject
                   </Button>
@@ -105,7 +105,7 @@ export default function FacultyAccounts() {
                   </Button>
                 </div>
               ) : (
-                <Badge variant={r.status === 'active' ? 'success' : 'danger'} className="shrink-0 capitalize">
+                <Badge variant={r.status === 'active' ? 'success' : 'danger'} className="shrink-0 self-start capitalize sm:self-auto">
                   {r.status === 'active' ? 'Approved' : 'Rejected'}
                 </Badge>
               )}

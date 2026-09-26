@@ -19,7 +19,7 @@ export default function Recommendations() {
 
   return (
     <div>
-      <Link to="/student/ai" className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-ink-700">
+      <Link to="/student/ai" className="-mt-2 mb-3 inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-slate-500 sm:mt-0 sm:mb-5 sm:min-h-0 hover:text-ink-700">
         <ArrowLeft size={14} /> AI Tools
       </Link>
 
@@ -28,7 +28,7 @@ export default function Recommendations() {
           <Target size={20} strokeWidth={1.9} />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink-800">Opportunity Matches</h1>
+          <h1 className="font-display text-xl font-semibold text-ink-800 sm:text-2xl">Opportunity Matches</h1>
           <p className="mt-1 text-sm text-slate-500">
             Ranked against your branch and skills from your profile — the closer the match, the higher it lands.
           </p>

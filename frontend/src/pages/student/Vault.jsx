@@ -121,7 +121,7 @@ export default function Vault() {
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map((doc) => (
-            <Card key={doc._id} className="flex items-center gap-4 p-4">
+            <Card key={doc._id} className="flex flex-wrap items-center gap-x-3 gap-y-3 p-4 sm:flex-nowrap sm:gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
                 {doc.fileType?.includes('pdf') ? <FileText size={18} /> : <File size={18} />}
               </div>
@@ -131,6 +131,7 @@ export default function Vault() {
                   Uploaded {format(new Date(doc.uploadedAt), 'MMM d, yyyy')}
                 </p>
               </div>
+              <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start">
               <Badge variant="neutral">{labelFor(doc.category)}</Badge>
               <div className="flex shrink-0 items-center gap-1.5">
                 <Button
@@ -145,6 +146,7 @@ export default function Vault() {
                 <Button size="sm" variant="danger" onClick={() => setPendingDelete(doc)} aria-label="Delete">
                   <Trash2 size={14} />
                 </Button>
+              </div>
               </div>
             </Card>
           ))}

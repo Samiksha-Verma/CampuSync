@@ -215,8 +215,8 @@ export default function MockTest() {
             <h3 className="mb-3 font-display text-base font-semibold text-ink-800">Recent attempts</h3>
             <div className="flex flex-col gap-2.5">
               {history.slice(0, 5).map((a) => (
-                <Card key={a._id} className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
+                <Card key={a._id} className="flex items-center justify-between gap-3 p-4">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                     <Badge variant="neutral">{CATEGORY_META[a.category]?.label || a.category}</Badge>
                     <p className="text-sm text-slate-500">
                       {formatDistanceToNow(new Date(a.completedAt), { addSuffix: true })}
@@ -238,9 +238,9 @@ export default function MockTest() {
     const q = questions[current];
     return (
       <div className="mx-auto max-w-2xl">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-slate-400">{CATEGORY_META[category]?.label || category}</p>
+        <div className="mb-5 flex items-center justify-between gap-3 sm:mb-6">
+          <div className="min-w-0">
+            <p className="truncate text-xs uppercase tracking-wider text-slate-400">{CATEGORY_META[category]?.label || category}</p>
             <p className="mt-0.5 font-display text-lg font-semibold text-ink-800">
               Question {current + 1} of {questions.length}
             </p>
@@ -282,7 +282,7 @@ export default function MockTest() {
                 key={i}
                 onClick={() => selectAnswer(i)}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors',
+                  'flex min-h-12 items-center gap-3 rounded-lg border px-3.5 py-3 text-left text-sm transition-colors sm:px-4',
                   answers[current] === i
                     ? 'border-forest-600 bg-forest-50 text-forest-800'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
@@ -296,21 +296,21 @@ export default function MockTest() {
                 >
                   {String.fromCharCode(65 + i)}
                 </span>
-                <span className={isCodeOption(opt) ? 'font-mono text-xs' : ''}>{opt}</span>
+                <span className={cn('min-w-0 break-words', isCodeOption(opt) && 'font-mono text-xs')}>{opt}</span>
               </button>
             ))}
           </div>
         </Card>
 
-        <div className="mt-5 flex items-center justify-between">
-          <Button variant="secondary" onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}>
+        <div className="mt-5 flex flex-wrap items-center gap-3 sm:justify-between">
+          <Button variant="secondary" className="flex-1 sm:flex-none" onClick={() => setCurrent((c) => Math.max(0, c - 1))} disabled={current === 0}>
             Previous
           </Button>
-          <p className="text-sm text-slate-400">{answeredCount} of {questions.length} answered</p>
+          <p className="order-first w-full text-center text-sm text-slate-400 sm:order-none sm:w-auto">{answeredCount} of {questions.length} answered</p>
           {current < questions.length - 1 ? (
-            <Button onClick={() => setCurrent((c) => c + 1)}>Next</Button>
+            <Button className="flex-1 sm:flex-none" onClick={() => setCurrent((c) => c + 1)}>Next</Button>
           ) : (
-            <Button onClick={doSubmit} loading={submit.isPending}>
+            <Button className="flex-1 sm:flex-none" onClick={doSubmit} loading={submit.isPending}>
               Submit test
             </Button>
           )}

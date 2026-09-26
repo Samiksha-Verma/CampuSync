@@ -226,16 +226,16 @@ export default function Interview() {
 
   return (
     <div>
-      <Link to="/student/ai" className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-ink-700">
+      <Link to="/student/ai" className="-mt-2 mb-3 inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-slate-500 sm:mt-0 sm:mb-5 sm:min-h-0 hover:text-ink-700">
         <ArrowLeft size={14} /> AI Tools
       </Link>
 
-      <div className="mb-7 flex items-start gap-4">
+      <div className="mb-6 flex items-start gap-3 sm:mb-7 sm:gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
           <Mic size={20} strokeWidth={1.9} />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink-800">Voice Mock Interview</h1>
+          <h1 className="font-display text-xl font-semibold text-ink-800 sm:text-2xl">Voice Mock Interview</h1>
           <p className="mt-1 text-sm text-slate-500">
             Upload your resume, tell the interviewer what role you're going for, and answer out loud — Groq
             tailors every question to your background and scores the whole interview at the end.
@@ -284,8 +284,8 @@ export default function Interview() {
           ) : null}
 
           {resumeInput ? (
-            <p className="mb-4 flex items-center gap-1.5 text-xs text-slate-400">
-              <FileText size={13} /> {resumeInput.fileName}
+            <p className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-400">
+              <span className="flex min-w-0 max-w-full items-center gap-1.5"><FileText size={13} className="shrink-0" /><span className="truncate">{resumeInput.fileName}</span></span>
               {stage === 'interview' ? (
                 <>
                   <span className="mx-1">·</span>
@@ -303,19 +303,19 @@ export default function Interview() {
 
           {(stage === 'ask-role' || stage === 'interview') && !start.isError && !next.isError ? (
             <Card className="mb-4">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <StatusPill phase={effectivePhase} sttSupported={voiceInputActive} />
                 {effectivePhase === 'listening' && stt.isSilenceWarning ? (
                   <span className="text-xs font-medium text-brass-700">Still there? Wrapping up in a moment…</span>
                 ) : null}
               </div>
 
-              <div className="flex max-h-80 flex-col gap-3 overflow-y-auto rounded-lg bg-slate-50 p-4">
+              <div className="flex max-h-[45dvh] flex-col gap-3 overflow-y-auto rounded-lg bg-slate-50 p-3 sm:max-h-80 sm:p-4">
                 {transcriptEntries.map((entry, i) => (
                   <div key={i} className={cn('flex', entry.who === 'ai' ? 'justify-start' : 'justify-end')}>
                     <div
                       className={cn(
-                        'max-w-[85%] rounded-xl px-3.5 py-2 text-sm leading-relaxed',
+                        'max-w-[88%] break-words rounded-xl px-3.5 py-2 text-sm leading-relaxed sm:max-w-[85%]',
                         entry.who === 'ai' ? 'bg-white text-ink-800 shadow-sm' : 'bg-forest-600 text-white',
                         entry.interim && 'opacity-70'
                       )}
@@ -349,7 +349,7 @@ export default function Interview() {
                     rows={2}
                     className="flex-1"
                   />
-                  <Button onClick={handleTypedSubmit} disabled={!typedAnswer.trim()}>
+                  <Button onClick={handleTypedSubmit} disabled={!typedAnswer.trim()} aria-label="Send answer">
                     <Send size={15} />
                   </Button>
                 </div>

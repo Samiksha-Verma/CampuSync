@@ -44,7 +44,7 @@ export const NotificationBell = () => {
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
-    setPanelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+    setPanelPos({ top: rect.bottom + 8, right: Math.max(12, window.innerWidth - rect.right) });
   }, [open]);
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export const NotificationBell = () => {
       <button
         ref={triggerRef}
         onClick={() => setOpen((o) => !o)}
-        className="relative rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-ink-700"
+        className="relative rounded-lg p-2.5 text-slate-500 lg:p-2 transition-colors hover:bg-slate-100 hover:text-ink-700"
         aria-label="Notifications"
       >
         <Bell size={19} strokeWidth={1.9} />
@@ -80,7 +80,7 @@ export const NotificationBell = () => {
               <div
                 ref={panelRef}
                 style={{ top: panelPos.top, right: panelPos.right }}
-                className="fixed z-40 w-96 rounded-2xl border border-slate-200 bg-white shadow-xl"
+                className="fixed z-40 w-[min(24rem,calc(100vw-1.5rem))] rounded-2xl border border-slate-200 bg-white shadow-xl"
               >
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                   <p className="font-display text-sm font-semibold text-ink-800">Notifications</p>

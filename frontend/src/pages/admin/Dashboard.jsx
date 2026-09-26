@@ -30,7 +30,7 @@ export default function AdminDashboard() {
       <h1 className="font-display text-2xl font-semibold text-ink-800">Welcome, {user?.name}.</h1>
       <p className="mt-1.5 text-sm text-slate-500">An overview of everything posted across campus.</p>
 
-      <div className="mt-7 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-3 sm:mt-7 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         {stats.map(({ label, value, total, icon: Icon, to }) => (
           <Link key={label} to={to}>
             <Card className="transition-all hover:-translate-y-0.5 hover:shadow-md">
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
               <h3 className="font-display text-base font-semibold text-ink-800">Mock Test Bank</h3>
               <p className="mt-0.5 text-sm text-slate-500">Add practice questions for students.</p>
             </div>
-            <Link to="/admin/mocktest" className="shrink-0 text-sm font-medium text-forest-700 hover:text-forest-800">
+            <Link to="/admin/mocktest" className="shrink-0 py-2 text-sm font-medium text-forest-700 hover:text-forest-800">
               Add →
             </Link>
           </div>
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
                   : 'No pending applications right now.'}
               </p>
             </div>
-            <Link to="/admin/faculty" className="shrink-0 text-sm font-medium text-forest-700 hover:text-forest-800">
+            <Link to="/admin/faculty" className="shrink-0 py-2 text-sm font-medium text-forest-700 hover:text-forest-800">
               Review →
             </Link>
           </div>

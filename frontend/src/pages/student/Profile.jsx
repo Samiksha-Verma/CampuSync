@@ -105,7 +105,7 @@ export default function Profile() {
             </div>
             <button
               onClick={() => avatarInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-forest-700 text-white shadow-sm transition-colors hover:bg-forest-800"
+              className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center sm:h-8 sm:w-8 justify-center rounded-full border-2 border-white bg-forest-700 text-white shadow-sm transition-colors hover:bg-forest-800"
               aria-label="Change photo"
             >
               {avatar.isPending ? (
@@ -185,7 +185,7 @@ export default function Profile() {
               {form.skills.map((s) => (
                 <span key={s} className="flex items-center gap-1.5 rounded-full bg-forest-50 px-3 py-1.5 text-sm font-medium text-forest-700">
                   {s}
-                  <button onClick={() => removeSkill(s)} className="text-forest-400 hover:text-forest-700" aria-label={`Remove ${s}`}>
+                  <button onClick={() => removeSkill(s)} className="-my-1.5 -mr-2 flex h-9 w-9 items-center justify-center rounded-full text-forest-400 hover:text-forest-700" aria-label={`Remove ${s}`}>
                     <X size={13} />
                   </button>
                 </span>
@@ -205,8 +205,8 @@ export default function Profile() {
             </div>
           </Card>
 
-          <div className="flex items-center justify-between">
-            <div className="flex gap-4 text-xs text-slate-400">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
               {form.linkedin ? (
                 <span className="flex items-center gap-1"><Link2 size={13} /> LinkedIn linked</span>
               ) : null}
@@ -214,7 +214,7 @@ export default function Profile() {
                 <span className="flex items-center gap-1"><Link2 size={13} /> GitHub linked</span>
               ) : null}
             </div>
-            <Button loading={save.isPending} onClick={() => save.mutate(form)}>
+            <Button className="w-full sm:w-auto" loading={save.isPending} onClick={() => save.mutate(form)}>
               Save changes
             </Button>
           </div>

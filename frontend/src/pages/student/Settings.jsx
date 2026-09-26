@@ -10,7 +10,7 @@ const Toggle = ({ checked, onChange }) => (
     role="switch"
     aria-checked={checked}
     onClick={() => onChange(!checked)}
-    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${checked ? 'bg-forest-600' : 'bg-slate-200'}`}
+    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors before:absolute before:-inset-x-1 before:-inset-y-3 before:content-[''] ${checked ? 'bg-forest-600' : 'bg-slate-200'}`}
   >
     <span
       className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${
@@ -59,9 +59,9 @@ export default function Settings() {
             ['Branch', user.branch],
             ['Year', user.year],
           ].map(([label, value]) => (
-            <div key={label} className="flex items-center justify-between py-2.5 text-sm">
-              <dt className="text-slate-500">{label}</dt>
-              <dd className="font-medium text-ink-800">{value}</dd>
+            <div key={label} className="flex items-start justify-between gap-4 py-2.5 text-sm">
+              <dt className="shrink-0 text-slate-500">{label}</dt>
+              <dd className="min-w-0 break-all text-right font-medium text-ink-800">{value}</dd>
             </div>
           ))}
         </dl>

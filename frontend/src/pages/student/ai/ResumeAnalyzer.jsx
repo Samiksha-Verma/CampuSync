@@ -57,16 +57,16 @@ export default function ResumeAnalyzer() {
 
   return (
     <div>
-      <Link to="/student/ai" className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-ink-700">
+      <Link to="/student/ai" className="-mt-2 mb-3 inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-slate-500 sm:mt-0 sm:mb-5 sm:min-h-0 hover:text-ink-700">
         <ArrowLeft size={14} /> AI Tools
       </Link>
 
-      <div className="mb-7 flex items-start gap-4">
+      <div className="mb-6 flex items-start gap-3 sm:mb-7 sm:gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-forest-50 text-forest-700">
           <FileSearch size={20} strokeWidth={1.9} />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink-800">Resume Analyzer</h1>
+          <h1 className="font-display text-xl font-semibold text-ink-800 sm:text-2xl">Resume Analyzer</h1>
           <p className="mt-1 text-sm text-slate-500">
             Upload a PDF resume, or pick one already in your vault — Groq scores it for ATS compatibility and
             points out exactly what to fix.
@@ -129,7 +129,7 @@ export default function ResumeAnalyzer() {
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-400">Analyzed</p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm font-medium text-ink-800">
-                  <FileText size={14} className="text-slate-400" /> {fileName}
+                  <FileText size={14} className="shrink-0 text-slate-400" /> <span className="min-w-0 break-all">{fileName}</span>
                 </p>
               </div>
               <Button size="sm" variant="secondary" onClick={() => { analyze.reset(); setFileName(''); }}>

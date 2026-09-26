@@ -72,7 +72,7 @@ export default function StaffProfile() {
             </div>
             <button
               onClick={() => avatarInputRef.current?.click()}
-              className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-forest-700 text-white shadow-sm transition-colors hover:bg-forest-800"
+              className="absolute -bottom-1 -right-1 flex h-10 w-10 items-center sm:h-8 sm:w-8 justify-center rounded-full border-2 border-white bg-forest-700 text-white shadow-sm transition-colors hover:bg-forest-800"
               aria-label="Change photo"
             >
               {avatar.isPending ? (

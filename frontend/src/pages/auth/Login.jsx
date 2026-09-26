@@ -104,7 +104,7 @@ export default function Login() {
                   setError('');
                 }}
                 className={cn(
-                  'flex items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-all',
+                  'flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-sm font-medium transition-all sm:py-2',
                   role === key ? 'bg-white text-forest-700 shadow-sm' : 'text-slate-500 hover:text-ink-700'
                 )}
               >
